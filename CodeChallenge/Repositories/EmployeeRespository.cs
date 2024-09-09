@@ -36,7 +36,7 @@ namespace CodeChallenge.Repositories
                 await AddAsync(compensation.Employee);
             }
 
-            var existing = await GetCompensationByEmployeeId(compensation.EmployeeId);
+            var existing = await GetCompensationByEmployeeId(compensation.Employee?.EmployeeId);
             if (existing != null)
             {
                 throw new InvalidOperationException("Compensation for this employee already exists.");
@@ -52,7 +52,7 @@ namespace CodeChallenge.Repositories
             if (string.IsNullOrEmpty(employeeId)) return null;
 
             var result =
-                await _employeeContext.Compensation.SingleOrDefaultAsync(x => x.EmployeeId == employeeId);
+                await _employeeContext.Compensation.SingleOrDefaultAsync(x => x.Employee.EmployeeId == employeeId);
 
             return result;
         }

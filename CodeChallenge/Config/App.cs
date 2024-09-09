@@ -32,8 +32,14 @@ namespace CodeChallenge.Config
                 SeedEmployeeDB();
             }
 
-            app.UseAuthorization();
+            app.UseExceptionHandler("/Error");
 
+            //Set header with Strict-Transport - Security and automatically redirect http to https
+            // Relevant in a Production setting
+            app.UseHsts();
+            app.UseHttpsRedirection();
+
+            app.UseAuthorization();
             app.MapControllers();
 
             return app;
@@ -41,6 +47,14 @@ namespace CodeChallenge.Config
 
         private void AddServices(IServiceCollection services)
         {
+            // Ensures all requests will be enforced as Https after first visit, or if preload, prior
+            // Relevant in a Production setting
+            services.AddHsts(options =>
+            {
+                options.MaxAge = TimeSpan.FromDays(365);
+                options.IncludeSubDomains = true;
+                options.Preload = true; // would require a submission https://hstspreload.org/
+            });
 
             services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();

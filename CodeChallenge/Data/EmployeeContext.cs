@@ -11,10 +11,5 @@ namespace CodeChallenge.Data
 
         public DbSet<Employee> Employees { get; set; }
         public DbSet<Compensation> Compensation { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Compensation>().HasIndex(c => c.EmployeeId).IsUnique();
-        }
     }
 }

@@ -56,9 +56,9 @@ namespace CodeChallenge.Tests.Integration
                 .Returns(Task.CompletedTask);  // SaveAsync should return a completed task
 
             mockEmployeeContextRepo.Setup(x => x.GetById(It.IsAny<string>()))
-                .ReturnsAsync((string employeeId) => addedEmployee);
+                .ReturnsAsync((string _) => addedEmployee);
             mockEmployeeContextRepo.Setup(x => x.GetCompensationByEmployeeId(It.IsAny<string>()))
-                .ReturnsAsync((string employeeId) => addedCompensation);  // Return the compensation by employeeId
+                .ReturnsAsync((string _) => addedCompensation);  // Return the compensation by employeeId
 
             // Create test employee and compensation
             var employeeId = Guid.NewGuid().ToString();
@@ -92,7 +92,7 @@ namespace CodeChallenge.Tests.Integration
             Assert.IsNotNull(createdCompensation);
 
             // Retrieve the created compensation
-            var actualCompensationResult = await employeeService.GetCompensationByEmployeeId(compensation.EmployeeId);
+            var actualCompensationResult = await employeeService.GetCompensationByEmployeeId(compensation.Employee.EmployeeId);
 
             Assert.IsNotNull(actualCompensationResult);
         }

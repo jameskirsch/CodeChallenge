@@ -3,12 +3,13 @@ using System.Threading.Tasks;
 using CodeChallenge.Models;
 using Microsoft.Extensions.Logging;
 using CodeChallenge.Repositories;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace CodeChallenge.Services
 {
     public class EmployeeService : IEmployeeService
     {
-        private IEmployeeRepository _employeeRepository;
+        private readonly IEmployeeRepository _employeeRepository;
         private readonly ILogger<EmployeeService> _logger;
         
         public EmployeeService(ILogger<EmployeeService> logger, IEmployeeRepository employeeRepository)
@@ -37,15 +38,44 @@ namespace CodeChallenge.Services
             return null;
         }
 
+        /// <summary>
+        /// Creates a new Compensation record. Requires at least an EmployeeId to be associated.
+        /// Any invalid or missing EmployeeId results in a propagated exception to the controller,
+        /// which should handle it and return an appropriate HTTP response.
+        /// </summary>
+        /// <param name="compensation">The compensation object to be created.</param>
+        /// <returns>The created compensation object, or an exception if validation fails.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the compensation object is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when the EmployeeId is missing or null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the associated Employee does not exist.</exception>
         public async Task<Compensation> Create(Compensation compensation)
         {
-            if (compensation == null) return null;
+            // Ensure compensation exists
+            if (compensation == null)
+            {
+                _logger.LogError("Compensation Object is Null");
+                throw new ArgumentNullException(nameof(compensation), "Compensation objection cannot be null");
+            }
 
-            // Need to ensure the employee exists before adding a compensation record
+            //// Check if EmployeeId is a valid GUID
+            if (string.IsNullOrEmpty(compensation.EmployeeId) || !Guid.TryParse(compensation.EmployeeId, out var employeeGuid))
+            {
+                _logger.LogError("Invalid EmployeeId format.");
+                throw new ArgumentException("EmployeeId must be a valid GUID in Compensation Object.", nameof(compensation));
+            }
+
+            // Check for existing employee, if not found, return appropriate error
             var existingEmployee = await _employeeRepository.GetById(compensation.EmployeeId);
+            if (existingEmployee == null)
+            {
+                _logger.LogError("No Employee Record found to associate new Compensation Record with");
+                throw new InvalidOperationException("Employee not found. Compensation cannot be created.");
+            }
+            
+            // If the employee exists, attach it to the compensation record.
+            compensation.Employee = existingEmployee;
 
-            if (existingEmployee == null) return compensation;
-
+            // Add the new Compensation Record with the Employee attached, and Save
             await _employeeRepository.AddAsync(compensation);
             await _employeeRepository.SaveAsync();
 
