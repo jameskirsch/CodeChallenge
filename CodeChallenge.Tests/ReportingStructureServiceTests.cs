@@ -39,7 +39,7 @@ namespace CodeChallenge.Tests.Integration
         public void GetReporting_Structure_By_EmployeeId_Returns_Ok()
         {
             // Arrange
-            var employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
+            const string employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
 
             // Act
             var getRequestTask = _httpClient.GetAsync($"api/reporting/{employeeId}");
@@ -57,8 +57,8 @@ namespace CodeChallenge.Tests.Integration
         public void Get_Reporting_Structure_By_EmployeeId_Returns_Full_Details()
         {
             // Arrange
-            var employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
-            var expectedNumberOfReports = 4;
+            const string employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
+            const int expectedNumberOfReports = 4;
 
             // Execute
             var getRequestTask = _httpClient.GetAsync($"api/reporting/{employeeId}");
@@ -73,6 +73,7 @@ namespace CodeChallenge.Tests.Integration
             Assert.IsNotNull(reportingStructure.NumberOfReports);
             Assert.AreEqual(expectedNumberOfReports, reportingStructure.NumberOfReports);
             Assert.IsNotNull(reportingStructure.Employee);
+            Assert.IsNotNull(reportingStructure.Employee.DirectReports);
         }
 
         [TestMethod]
@@ -113,9 +114,9 @@ namespace CodeChallenge.Tests.Integration
         [TestMethod]
         public async Task Get_Reporting_Structure_With_Total_Reports_By_Employee_Id_By_Depth()
         {
-            var employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
+            const string employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
             var employeeService = new Mock<IEmployeeService>();
-            var expected = 9;
+            const int expected = 9;
 
             employeeService.Setup(x => x.GetByIdWithDirectReports(It.IsAny<string>()))
                 .ReturnsAsync(EmployeeReportDepthTestTree);
@@ -133,9 +134,9 @@ namespace CodeChallenge.Tests.Integration
         [TestMethod]
         public async Task Get_Reporting_Structure_With_Total_Reports_By_Employee_Id_By_Width()
         {
-            var employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
+            const string employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
             var employeeService = new Mock<IEmployeeService>();
-            var expected = 15;
+            const int expected = 15;
 
             employeeService.Setup(x => x.GetByIdWithDirectReports(It.IsAny<string>()))
                 .ReturnsAsync(EmployeeReportWidthTestTree);
@@ -151,8 +152,10 @@ namespace CodeChallenge.Tests.Integration
         }
 
         [TestMethod]
-        public void Request_Reporting_Structure_With_Fully_Filled_Out_Details()
+        public async Task Request_Reporting_Structure_With_Fully_Filled_Out_Details()
         {
+            const int expectedNumberOfReportsCount = 4;
+
             var employee = new Employee
             {
                 EmployeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f"
@@ -160,11 +163,14 @@ namespace CodeChallenge.Tests.Integration
 
             // Execute
              var response = 
-                  _httpClient.GetAsync($"api/reporting-structure/get-reporting-structure-by-employee-id/{employee.EmployeeId}");
+                  await _httpClient.GetAsync($"api/reporting/{employee.EmployeeId}");
 
-             var reportingStructureResult = response.Result;
+             var actualResult = response.DeserializeContent<ReportingStructure>();
 
-            Assert.IsNotNull( response );
+            Assert.IsNotNull(response);
+            Assert.IsNotNull(actualResult);
+            Assert.AreEqual(expectedNumberOfReportsCount, actualResult.NumberOfReports);
+            Assert.IsNotNull(actualResult.Employee);
         }
 
         private static readonly Employee EmployeeReportDepthTestTree = new Employee

@@ -46,7 +46,7 @@ namespace CodeChallenge.Controllers
         {
             try
             {
-                var result = await _employeeService.Create(compensation);
+                await _employeeService.Create(compensation);
                 return CreatedAtRoute("getCompensationByEmployeeById", new { id = compensation.CompensationId}, compensation);
             }
             catch (Exception ex)
