@@ -83,10 +83,7 @@ namespace CodeChallenge.Tests.Integration
             var reportingStructureService = new ReportingStructureService(new NullLogger<ReportingStructureService>(), employeeService);
 
             // Arrange Tree Reporting Structure for Depth
-            var reportingStructure = new ReportingStructure
-            {
-                Employee = EmployeeReportDepthTestTree
-            };
+            var reportingStructure = new ReportingStructure { Employee = EmployeeReportDepthTestTree };
 
             // Execute
             var actual = reportingStructureService.GetReportCount(reportingStructure.Employee);
@@ -102,10 +99,7 @@ namespace CodeChallenge.Tests.Integration
                 new ReportingStructureService(new NullLogger<ReportingStructureService>(), employeeService);
 
             // Arrange Tree Reporting Structure for Width
-            var reportingStructure = new ReportingStructure
-            {
-                Employee = EmployeeReportWidthTestTree
-            };
+            var reportingStructure = new ReportingStructure { Employee = EmployeeReportWidthTestTree };
 
             var actual = reportingStructureService.GetReportCount(reportingStructure.Employee);
             Assert.AreEqual(15, actual);
@@ -155,17 +149,40 @@ namespace CodeChallenge.Tests.Integration
         public async Task Request_Reporting_Structure_With_Fully_Filled_Out_Details()
         {
             const int expectedNumberOfReportsCount = 4;
+            var employee = new Employee { EmployeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f" };
+            
+            var response = await _httpClient.GetAsync($"api/reporting/{employee.EmployeeId}");
+            var actualResult = response.DeserializeContent<ReportingStructure>();
 
-            var employee = new Employee
-            {
-                EmployeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f"
-            };
+            Assert.IsNotNull(response);
+            Assert.IsNotNull(actualResult);
+            Assert.AreEqual(expectedNumberOfReportsCount, actualResult.NumberOfReports);
+            Assert.IsNotNull(actualResult.Employee);
+        }
 
-            // Execute
-             var response = 
-                  await _httpClient.GetAsync($"api/reporting/{employee.EmployeeId}");
+        [TestMethod]
+        public async Task Request_Reporting_Structure_With_Full_Reports_Starting_At_Second_Depth_Level()
+        {
+            const int expectedNumberOfReportsCount = 2;
+            var employee = new Employee { EmployeeId = "03aa1462-ffa9-4978-901b-7c001562cf6f" };
+            
+            var response = await _httpClient.GetAsync($"api/reporting/{employee.EmployeeId}");
+            var actualResult = response.DeserializeContent<ReportingStructure>();
 
-             var actualResult = response.DeserializeContent<ReportingStructure>();
+            Assert.IsNotNull(response);
+            Assert.IsNotNull(actualResult);
+            Assert.AreEqual(expectedNumberOfReportsCount, actualResult.NumberOfReports);
+            Assert.IsNotNull(actualResult.Employee);
+        }
+
+        [TestMethod]
+        public async Task Request_Reporting_Structure_With_Full_Reports_Returns_No_Reports_If_No_Direct_Reports()
+        {
+            const int expectedNumberOfReportsCount = 0;
+            var employee = new Employee { EmployeeId = "62c1084e-6e34-4630-93fd-9153afb65309" };
+            
+            var response = await _httpClient.GetAsync($"api/reporting/{employee.EmployeeId}");
+            var actualResult = response.DeserializeContent<ReportingStructure>();
 
             Assert.IsNotNull(response);
             Assert.IsNotNull(actualResult);
