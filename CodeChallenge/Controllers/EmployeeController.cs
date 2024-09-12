@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using CodeChallenge.Services;
@@ -23,16 +22,16 @@ namespace CodeChallenge.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateEmployee([FromBody] Employee employee)
         {
-            _logger.LogDebug($"Received employee create request for '{employee.FirstName} {employee.LastName}'");
+            _logger.LogDebug("Received employee create request for '{FirstName} {LastName}'", employee.FirstName, employee.LastName);
             await _employeeService.Create(employee);
 
             return CreatedAtRoute("getEmployeeById", new { id = employee.EmployeeId }, employee);
         }
 
         [HttpGet("{id}", Name = "getEmployeeById")]
-        public async Task<IActionResult> GetEmployeeById(String id)
+        public async Task<IActionResult> GetEmployeeById(string id)
         {
-            _logger.LogDebug($"Received employee get request for '{id}'");
+            _logger.LogDebug("Received employee get request for '{id}'", id);
 
             var employee = await _employeeService.GetById(id);
 
@@ -43,9 +42,9 @@ namespace CodeChallenge.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> ReplaceEmployee(String id, [FromBody]Employee newEmployee)
+        public async Task<IActionResult> ReplaceEmployee(string id, [FromBody]Employee newEmployee)
         {
-            _logger.LogDebug($"Recieved employee update request for '{id}'");
+            _logger.LogDebug("Received employee update request for '{id}'", id);
             
             var existingEmployee = await _employeeService.GetById(id);
             if (existingEmployee == null)
