@@ -5,6 +5,7 @@ using CodeChallenge.Repositories;
 using CodeChallenge.Services;
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -19,7 +20,7 @@ namespace CodeChallenge.Config
 
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.UseEmployeeDB();
+            builder.UseEmployeeDb();
             
             AddServices(builder.Services);
 
@@ -47,6 +48,7 @@ namespace CodeChallenge.Config
 
         private void AddServices(IServiceCollection services)
         {
+
             // Ensures all requests will be enforced as Https after first visit, or if preload, prior
             // Relevant in a Production setting
             services.AddHsts(options =>

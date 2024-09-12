@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using CodeChallenge.Models;
 using CodeChallenge.Services;
-using CodeCodeChallenge.Tests.Integration.Helpers;
+using CodeChallenge.Tests.Integration.Extensions;
+using CodeChallenge.Tests.Integration.Helpers;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using CodeCodeChallenge.Tests.Integration.Extensions;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace CodeChallenge.Tests.Integration
 {
@@ -21,7 +21,8 @@ namespace CodeChallenge.Tests.Integration
 
         [ClassInitialize]
         // Attribute ClassInitialize requires this signature
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter",
+            Justification = "<Pending>")]
         public static void InitializeClass(TestContext context)
         {
             _testServer = new TestServer();
@@ -54,29 +55,6 @@ namespace CodeChallenge.Tests.Integration
         }
 
         [TestMethod]
-        public void Get_Reporting_Structure_By_EmployeeId_Returns_Full_Details()
-        {
-            // Arrange
-            const string employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
-            const int expectedNumberOfReports = 4;
-
-            // Execute
-            var getRequestTask = _httpClient.GetAsync($"api/reporting/{employeeId}");
-            var response = getRequestTask.Result;
-
-            // Assert
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-            var reportingStructure = response.DeserializeContent<ReportingStructure>();
-
-            Assert.IsNotNull(reportingStructure);
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-            Assert.IsNotNull(reportingStructure.NumberOfReports);
-            Assert.AreEqual(expectedNumberOfReports, reportingStructure.NumberOfReports);
-            Assert.IsNotNull(reportingStructure.Employee);
-            Assert.IsNotNull(reportingStructure.Employee.DirectReports);
-        }
-
-        [TestMethod]
         public void Reporting_Structure_Service_Calculates_Report_Count_By_EmployeeId_Depth_Tree()
         {
             var employeeService = new Mock<IEmployeeService>().Object;
@@ -88,7 +66,7 @@ namespace CodeChallenge.Tests.Integration
             // Execute
             var actual = reportingStructureService.GetReportCount(reportingStructure.Employee);
 
-            Assert.AreEqual(9,  actual);
+            Assert.AreEqual(9, actual);
         }
 
         [TestMethod]
@@ -146,18 +124,25 @@ namespace CodeChallenge.Tests.Integration
         }
 
         [TestMethod]
-        public async Task Request_Reporting_Structure_With_Fully_Filled_Out_Details()
+        public async Task Get_Reporting_Structure_By_EmployeeId_Returns_Full_Details()
         {
-            const int expectedNumberOfReportsCount = 4;
-            var employee = new Employee { EmployeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f" };
-            
-            var response = await _httpClient.GetAsync($"api/reporting/{employee.EmployeeId}");
-            var actualResult = response.DeserializeContent<ReportingStructure>();
+            // Arrange
+            const string employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
+            const int expectedNumberOfReports = 4;
 
-            Assert.IsNotNull(response);
-            Assert.IsNotNull(actualResult);
-            Assert.AreEqual(expectedNumberOfReportsCount, actualResult.NumberOfReports);
-            Assert.IsNotNull(actualResult.Employee);
+            // Execute
+            var response = await _httpClient.GetAsync($"api/reporting/{employeeId}");
+
+            // Assert
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+            var reportingStructure = response.DeserializeContent<ReportingStructure>();
+
+            Assert.IsNotNull(reportingStructure);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+            Assert.IsNotNull(reportingStructure.NumberOfReports);
+            Assert.AreEqual(expectedNumberOfReports, reportingStructure.NumberOfReports);
+            Assert.IsNotNull(reportingStructure.Employee);
+            Assert.IsNotNull(reportingStructure.Employee.DirectReports);
         }
 
         [TestMethod]
@@ -165,7 +150,7 @@ namespace CodeChallenge.Tests.Integration
         {
             const int expectedNumberOfReportsCount = 2;
             var employee = new Employee { EmployeeId = "03aa1462-ffa9-4978-901b-7c001562cf6f" };
-            
+
             var response = await _httpClient.GetAsync($"api/reporting/{employee.EmployeeId}");
             var actualResult = response.DeserializeContent<ReportingStructure>();
 
@@ -180,7 +165,7 @@ namespace CodeChallenge.Tests.Integration
         {
             const int expectedNumberOfReportsCount = 0;
             var employee = new Employee { EmployeeId = "62c1084e-6e34-4630-93fd-9153afb65309" };
-            
+
             var response = await _httpClient.GetAsync($"api/reporting/{employee.EmployeeId}");
             var actualResult = response.DeserializeContent<ReportingStructure>();
 
@@ -189,6 +174,8 @@ namespace CodeChallenge.Tests.Integration
             Assert.AreEqual(expectedNumberOfReportsCount, actualResult.NumberOfReports);
             Assert.IsNotNull(actualResult.Employee);
         }
+
+        #region TestData
 
         private static readonly Employee EmployeeReportDepthTestTree = new Employee
         {
@@ -391,5 +378,7 @@ namespace CodeChallenge.Tests.Integration
                 }
             }
         };
+
+        #endregion
     }
 }

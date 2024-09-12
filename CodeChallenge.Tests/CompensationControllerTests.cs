@@ -4,8 +4,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using CodeChallenge.Models;
-using CodeCodeChallenge.Tests.Integration.Extensions;
-using CodeCodeChallenge.Tests.Integration.Helpers;
+using CodeChallenge.Tests.Integration.Extensions;
+using CodeChallenge.Tests.Integration.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 

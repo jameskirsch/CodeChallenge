@@ -57,7 +57,8 @@ namespace CodeChallenge.Services
         /// in wide hierarchies, where memory consumption at each level can grow significantly. In real-world applications, analyzing the 
         /// data structure (whether it's deeper or wider) can help determine the best algorithm for traversal.
         ///
-        /// Maybe a discussion point?
+        /// Maybe a discussion point? (I think also in a real scenario it might be viable to put restrictions on how deep the nesting can be)
+        /// Some of the overhead can be managed with lazy loading/eager loading as well I think.
         ///
         /// Also, I just want to say that anything I've changed was not a critique on any of the code given
         /// but just trying to display how I might program something on the Job, and I want to thank you

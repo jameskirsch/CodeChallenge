@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using CodeChallenge.Models;
 using Microsoft.Extensions.Logging;
@@ -22,10 +21,22 @@ namespace CodeChallenge.Repositories
         public async Task<Employee> AddAsync(Employee employee)
         {
             if (employee == null) return null;
+            
             employee.EmployeeId ??= Guid.NewGuid().ToString();
             await _employeeContext.Employees.AddAsync(employee);
+            await _employeeContext.SaveChangesAsync();
             
             return employee;
+        }
+
+        public async Task<Employee> Update(Employee employee)
+        {
+            if (employee == null || string.IsNullOrEmpty(employee.EmployeeId)) return null;
+
+            var result = _employeeContext.Employees.Update(employee).Entity;
+            await _employeeContext.SaveChangesAsync();
+            
+            return result;
         }
 
         public async Task<Compensation> AddAsync(Compensation compensation)
@@ -43,6 +54,7 @@ namespace CodeChallenge.Repositories
             }
             
             await _employeeContext.Compensation.AddAsync(compensation);
+            await _employeeContext.SaveChangesAsync();
 
             return compensation;
         }
@@ -61,7 +73,7 @@ namespace CodeChallenge.Repositories
         {
             var result = await _employeeContext.Employees
                 .SingleOrDefaultAsync(e => e.EmployeeId.ToString() == id);
-
+            
             return result;
         }
         
@@ -72,13 +84,13 @@ namespace CodeChallenge.Repositories
 
             if (employee != null)
             {
-                LoadEmployeeDirectReportsWithDfs(employee);
+                await LoadEmployeeDirectReportsWithDfs(employee);
             }
 
             return employee;
         }
 
-        private async void LoadEmployeeDirectReportsWithDfs(Employee employee)
+        private async Task LoadEmployeeDirectReportsWithDfs(Employee employee)
         {
             _logger.LogDebug("Loading all Direct Reports from Entry Employee");
 
@@ -86,18 +98,15 @@ namespace CodeChallenge.Repositories
 
             foreach (var report in employee.DirectReports)
             {
-                LoadEmployeeDirectReportsWithDfs(report);
+                await LoadEmployeeDirectReportsWithDfs(report);
             }
         }
 
-        public Task SaveAsync()
+        public async Task<Employee> Delete(Employee employee)
         {
-            return _employeeContext.SaveChangesAsync();
-        }
-
-        public Employee Remove(Employee employee)
-        {
-            return _employeeContext.Remove(employee).Entity;
+            var result = _employeeContext.Remove(employee).Entity;
+            await _employeeContext.SaveChangesAsync();
+            return result;
         }
     }
 }

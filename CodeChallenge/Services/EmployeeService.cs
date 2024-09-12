@@ -4,6 +4,9 @@ using CodeChallenge.Models;
 using Microsoft.Extensions.Logging;
 using CodeChallenge.Repositories;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using CodeChallenge.Data;
+using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 
 namespace CodeChallenge.Services
 {
@@ -11,19 +14,20 @@ namespace CodeChallenge.Services
     {
         private readonly IEmployeeRepository _employeeRepository;
         private readonly ILogger<EmployeeService> _logger;
+        private readonly IMapper _mapper;
         
-        public EmployeeService(ILogger<EmployeeService> logger, IEmployeeRepository employeeRepository)
+        public EmployeeService(ILogger<EmployeeService> logger, IEmployeeRepository employeeRepository, IMapper mapper)
         {
-            _employeeRepository = employeeRepository;
-            _logger = logger;
+            _employeeRepository = employeeRepository ?? throw new ArgumentNullException(nameof(employeeRepository));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<Employee> Create(Employee employee)
         {
             if (employee == null) return null;
-            
+
             await _employeeRepository.AddAsync(employee);
-            await _employeeRepository.SaveAsync();
 
             return employee;
         }
@@ -77,7 +81,6 @@ namespace CodeChallenge.Services
 
             // Add the new Compensation Record with the Employee attached, and Save
             await _employeeRepository.AddAsync(compensation);
-            await _employeeRepository.SaveAsync();
 
             return compensation;
         }
@@ -94,24 +97,14 @@ namespace CodeChallenge.Services
                 ? await _employeeRepository.GetByIdWithDirectReports(id) : null;
         }
 
-        public Employee Replace(Employee originalEmployee, Employee newEmployee)
+        public async Task<Employee> Update(Employee existingModel, Employee updateModel)
         {
-            if(originalEmployee != null)
-            {
-                _employeeRepository.Remove(originalEmployee);
-                if (newEmployee != null)
-                {
-                    // ensure the original has been removed, otherwise EF will complain another entity w/ same id already exists
-                    _employeeRepository.SaveAsync().Wait();
+            if (existingModel == null) return updateModel;
+            
+            _mapper.Map(updateModel, existingModel);
+            var result = await _employeeRepository.Update(existingModel);
 
-                    _employeeRepository.AddAsync(newEmployee);
-                    // overwrite the new id with previous employee id
-                    newEmployee.EmployeeId = originalEmployee.EmployeeId;
-                }
-                _employeeRepository.SaveAsync().Wait();
-            }
-
-            return newEmployee;
+            return result;
         }
     }
 }

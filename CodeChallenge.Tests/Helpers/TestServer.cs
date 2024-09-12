@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-
 using Microsoft.AspNetCore.Mvc.Testing;
 
-namespace CodeCodeChallenge.Tests.Integration.Helpers
+namespace CodeChallenge.Tests.Integration.Helpers
 {
     public class TestServer : IDisposable, IAsyncDisposable
     {
@@ -19,7 +18,6 @@ namespace CodeCodeChallenge.Tests.Integration.Helpers
         {
             return applicationFactory.CreateClient();
         }
-
 
         public ValueTask DisposeAsync()
         {

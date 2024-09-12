@@ -10,6 +10,6 @@ namespace CodeChallenge.Services
         Task<Compensation> GetCompensationByEmployeeId(string id);
         Task<Employee> Create(Employee employee);
         Task<Compensation> Create(Compensation compensation);
-        Employee Replace(Employee originalEmployee, Employee newEmployee);
+        Task<Employee> Update(Employee existingModel, Employee updateModel);
     }
 }

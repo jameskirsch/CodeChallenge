@@ -1,17 +1,13 @@
-
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using CodeChallenge.Models;
-
-using CodeCodeChallenge.Tests.Integration.Extensions;
-using CodeCodeChallenge.Tests.Integration.Helpers;
-
+using CodeChallenge.Tests.Integration.Extensions;
+using CodeChallenge.Tests.Integration.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CodeCodeChallenge.Tests.Integration
+namespace CodeChallenge.Tests.Integration
 {
     [TestClass]
     public class EmployeeControllerTests
@@ -85,10 +81,10 @@ namespace CodeCodeChallenge.Tests.Integration
         }
 
         [TestMethod]
-        public void UpdateEmployee_Returns_Ok()
+        public async Task UpdateEmployee_Returns_Ok()
         {
             // Arrange
-            var employee = new Employee()
+            var employee = new Employee
             {
                 EmployeeId = "03aa1462-ffa9-4978-901b-7c001562cf6f",
                 Department = "Engineering",
@@ -96,19 +92,19 @@ namespace CodeCodeChallenge.Tests.Integration
                 LastName = "Best",
                 Position = "Developer VI",
             };
-            var requestContent = new JsonSerialization().ToJson(employee);
-
-            // Execute
-            var putRequestTask = _httpClient.PutAsync($"api/employee/{employee.EmployeeId}",
-               new StringContent(requestContent, Encoding.UTF8, "application/json"));
-            var putResponse = putRequestTask.Result;
             
+            var requestContent = new JsonSerialization().ToJson(employee);
+            
+            // Execute
+            var putResponse = await _httpClient.PutAsync($"api/employee/{employee.EmployeeId}",
+               new StringContent(requestContent, Encoding.UTF8, "application/json"));
+
             // Assert
             Assert.AreEqual(HttpStatusCode.OK, putResponse.StatusCode);
-            var newEmployee = putResponse.DeserializeContent<Employee>();
+            var updatedEmployee = putResponse.DeserializeContent<Employee>();
 
-            Assert.AreEqual(employee.FirstName, newEmployee.FirstName);
-            Assert.AreEqual(employee.LastName, newEmployee.LastName);
+            Assert.AreEqual(employee.FirstName, updatedEmployee.FirstName);
+            Assert.AreEqual(employee.LastName, updatedEmployee.LastName);
         }
 
         [TestMethod]

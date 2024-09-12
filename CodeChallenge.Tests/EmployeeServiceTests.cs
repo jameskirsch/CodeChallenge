@@ -2,13 +2,14 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using AutoMapper;
 using CodeChallenge.Models;
 using CodeChallenge.Repositories;
 using CodeChallenge.Services;
-using CodeCodeChallenge.Tests.Integration.Helpers;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using CodeChallenge.Data;
+using CodeChallenge.Tests.Integration.Helpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace CodeChallenge.Tests.Integration
@@ -39,6 +40,7 @@ namespace CodeChallenge.Tests.Integration
         public async Task Ensure_Compensation_Created_And_Returned()
         {
             var mockEmployeeContextRepo = new Mock<IEmployeeRepository>();
+            var mapper = new Mock<IMapper>();
 
             Compensation addedCompensation = null;
             Employee addedEmployee = null;
@@ -51,9 +53,6 @@ namespace CodeChallenge.Tests.Integration
             mockEmployeeContextRepo.Setup(x => x.AddAsync(It.IsAny<Employee>()))
                 .Callback<Employee>(emp => addedEmployee = emp)
                 .ReturnsAsync((Employee emp) => emp);
-
-            mockEmployeeContextRepo.Setup(x => x.SaveAsync())
-                .Returns(Task.CompletedTask);  // SaveAsync should return a completed task
 
             mockEmployeeContextRepo.Setup(x => x.GetById(It.IsAny<string>()))
                 .ReturnsAsync((string _) => addedEmployee);
@@ -79,7 +78,7 @@ namespace CodeChallenge.Tests.Integration
             };
 
             // Initialize the service with the mock repository
-            var employeeService = new EmployeeService(new NullLogger<EmployeeService>(), mockEmployeeContextRepo.Object);
+            var employeeService = new EmployeeService(new NullLogger<EmployeeService>(), mockEmployeeContextRepo.Object, mapper.Object);
 
             // Create employee record (employee record is required)
             var createdEmployee = employeeService.Create(employee);
@@ -100,6 +99,8 @@ namespace CodeChallenge.Tests.Integration
         [TestMethod]
         public async Task Ensure_Compensation_Created_And_Persisted_InDatabase()
         {
+            var mapper = new Mock<IMapper>();
+
             // Create an in memory database for testing
             var options = new DbContextOptionsBuilder<EmployeeContext>()
                 .UseInMemoryDatabase(databaseName: "TestEmployeeDatabase")
@@ -107,8 +108,8 @@ namespace CodeChallenge.Tests.Integration
 
             // Use the in-memory database for the EmployeeContext
             await using var context = new EmployeeContext(options);
-            var employeeService = new EmployeeService(new NullLogger<EmployeeService>(), 
-                new EmployeeRepository(new NullLogger<IEmployeeRepository>(), context));
+            var employeeService = new EmployeeService(new NullLogger<EmployeeService>(),
+                new EmployeeRepository(new NullLogger<IEmployeeRepository>(), context), mapper.Object);
 
             // Create a test employee and compensation
             var employeeId = Guid.NewGuid().ToString();
@@ -131,14 +132,14 @@ namespace CodeChallenge.Tests.Integration
 
             // Add the Employee (need to have an employee)
             await employeeService.Create(employee);
-            
+
             // Add the Compensation
             await employeeService.Create(compensation);
 
             // Assert
             // Ensure the compensation was persisted to the database
             var actualPersistedCompensation = await context.Compensation.SingleOrDefaultAsync(c => c.EmployeeId == employeeId);
-            
+
             Assert.IsNotNull(actualPersistedCompensation);
             Assert.AreEqual(compensation.Salary, actualPersistedCompensation.Salary);
             Assert.AreEqual(compensation.EffectiveDate, actualPersistedCompensation.EffectiveDate);

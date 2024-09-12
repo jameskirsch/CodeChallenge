@@ -1,4 +1,5 @@
-﻿using CodeChallenge.Data;
+﻿using CodeChallenge.Config.MapperProfiles;
+using CodeChallenge.Data;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +10,9 @@ namespace CodeChallenge.Config
     public static class WebApplicationBuilderExt
     {
         private static readonly string DB_NAME = "EmployeeDB";
-        public static void UseEmployeeDB(this WebApplicationBuilder builder)
+        public static void UseEmployeeDb(this WebApplicationBuilder builder)
         {
+            builder.Services.AddAutoMapper(typeof(EmployeeProfile));
             builder.Services.AddDbContext<EmployeeContext>(options =>
             {
                 options.UseInMemoryDatabase(DB_NAME);

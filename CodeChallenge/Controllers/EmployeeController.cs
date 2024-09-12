@@ -22,7 +22,8 @@ namespace CodeChallenge.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateEmployee([FromBody] Employee employee)
         {
-            _logger.LogDebug("Received employee create request for '{FirstName} {LastName}'", employee.FirstName, employee.LastName);
+            _logger.LogDebug("Received employee create request for '{FirstName} {LastName}'", employee.FirstName,
+                employee.LastName);
             await _employeeService.Create(employee);
 
             return CreatedAtRoute("getEmployeeById", new { id = employee.EmployeeId }, employee);
@@ -42,17 +43,19 @@ namespace CodeChallenge.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> ReplaceEmployee(string id, [FromBody]Employee newEmployee)
+        public async Task<IActionResult> Update(string id, [FromBody]Employee updateModel)
         {
             _logger.LogDebug("Received employee update request for '{id}'", id);
-            
+
             var existingEmployee = await _employeeService.GetById(id);
             if (existingEmployee == null)
+            {
                 return NotFound();
+            }
 
-            _employeeService.Replace(existingEmployee, newEmployee);
+            var updatedEmployee = await _employeeService.Update(existingEmployee, updateModel);
 
-            return Ok(newEmployee);
+            return Ok(updatedEmployee);
         }
     }
 }
