@@ -12,6 +12,17 @@ namespace CodeChallenge.Config
         private static readonly string DB_NAME = "EmployeeDB";
         public static void UseEmployeeDb(this WebApplicationBuilder builder)
         {
+            // Add CORS service
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactApp", builder =>
+                {
+                    builder.WithOrigins("http://localhost:3000") // React app running on this origin
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                });
+            });
+
             builder.Services.AddAutoMapper(typeof(EmployeeProfile));
             builder.Services.AddDbContext<EmployeeContext>(options =>
             {

@@ -1,7 +1,10 @@
-﻿namespace CodeChallenge.Models
+﻿using System.Text.Json.Serialization;
+
+namespace CodeChallenge.Models
 {
     public class ReportingStructure
     {
+        [JsonPropertyName("Employee")]
         public Employee Employee { get; set; }
 
         // should equal the total number of reports under a given employee

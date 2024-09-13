@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using CodeChallenge.Services;
@@ -56,6 +57,13 @@ namespace CodeChallenge.Controllers
             var updatedEmployee = await _employeeService.Update(existingEmployee, updateModel);
 
             return Ok(updatedEmployee);
+        }
+
+        //TODO: Setup Delete Operation for Employee
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            throw new NotImplementedException("Still need to setup");
         }
     }
 }

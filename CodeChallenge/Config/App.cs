@@ -5,7 +5,6 @@ using CodeChallenge.Repositories;
 using CodeChallenge.Services;
 
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -38,8 +37,13 @@ namespace CodeChallenge.Config
             //Set header with Strict-Transport - Security and automatically redirect http to https
             // Relevant in a Production setting
             app.UseHsts();
-            app.UseHttpsRedirection();
 
+            if (!env.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
+
+            app.UseCors("AllowReactApp");
             app.UseAuthorization();
             app.MapControllers();
 
