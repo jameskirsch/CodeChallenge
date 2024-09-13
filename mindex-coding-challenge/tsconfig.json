@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "es5",                                  // ES5 is more compatible, adjust if needed
+    "module": "commonjs",                             // CommonJS modules, as typically used with Node.js
+    "lib": ["dom", "esnext"],                         // DOM and latest JS features
+    "jsx": "react",                                   // Enable React JSX support
+    "esModuleInterop": true,                          // Interop between ES modules and CommonJS
+    "skipLibCheck": true,                             // Skips checking type declarations of external libraries
+    "forceConsistentCasingInFileNames": true,         // Ensure consistent casing in imports
+    "strict": false,                                  // Disable strict mode (loosens type checks)
+    "noImplicitAny": false,                           // Allows `any` type (looser checking)
+    "strictNullChecks": false,                        // Disable strict null checks
+    "noImplicitThis": false,                          // Disable implicit `this` errors
+    "strictFunctionTypes": false,                     // Disable strict function type checking
+    "strictPropertyInitialization": false,            // Disable strict property initialization checks
+    "types": ["jest", "node"],                        // Include Jest and Node types
+    "moduleResolution": "node"                        // Resolves modules like Node.js
+  },
+  "include": ["src/**/*"]
+}
