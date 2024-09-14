@@ -60,7 +60,7 @@ namespace CodeChallenge.Tests.Integration
                 .ReturnsAsync((string _) => addedCompensation);  // Return the compensation by employeeId
 
             // Create test employee and compensation
-            var employeeId = Guid.NewGuid().ToString();
+            var employeeId = Guid.NewGuid();
             var employee = new Employee
             {
                 EmployeeId = employeeId,
@@ -72,7 +72,7 @@ namespace CodeChallenge.Tests.Integration
 
             var compensation = new Compensation
             {
-                EmployeeId = employeeId,
+                EmployeeId = employeeId.ToString(),
                 Salary = 2000.00M,
                 EffectiveDate = DateTimeOffset.UtcNow
             };
@@ -91,7 +91,7 @@ namespace CodeChallenge.Tests.Integration
             Assert.IsNotNull(createdCompensation);
 
             // Retrieve the created compensation
-            var actualCompensationResult = await employeeService.GetCompensationByEmployeeId(compensation.Employee.EmployeeId);
+            var actualCompensationResult = await employeeService.GetCompensationByEmployeeId(compensation.Employee.EmployeeId.ToString());
 
             Assert.IsNotNull(actualCompensationResult);
         }
@@ -112,7 +112,7 @@ namespace CodeChallenge.Tests.Integration
                 new EmployeeRepository(new NullLogger<IEmployeeRepository>(), context), mapper.Object);
 
             // Create a test employee and compensation
-            var employeeId = Guid.NewGuid().ToString();
+            var employeeId = Guid.NewGuid();
 
             var employee = new Employee
             {
@@ -125,7 +125,7 @@ namespace CodeChallenge.Tests.Integration
 
             var compensation = new Compensation
             {
-                EmployeeId = employeeId,
+                EmployeeId = employeeId.ToString(),
                 Salary = 2000.00M,
                 EffectiveDate = DateTimeOffset.UtcNow
             };
@@ -138,7 +138,7 @@ namespace CodeChallenge.Tests.Integration
 
             // Assert
             // Ensure the compensation was persisted to the database
-            var actualPersistedCompensation = await context.Compensation.SingleOrDefaultAsync(c => c.EmployeeId == employeeId);
+            var actualPersistedCompensation = await context.Compensations.SingleOrDefaultAsync(c => c.EmployeeId == employeeId.ToString());
 
             Assert.IsNotNull(actualPersistedCompensation);
             Assert.AreEqual(compensation.Salary, actualPersistedCompensation.Salary);

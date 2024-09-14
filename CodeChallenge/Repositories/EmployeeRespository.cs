@@ -22,7 +22,6 @@ namespace CodeChallenge.Repositories
         {
             if (employee == null) return null;
             
-            employee.EmployeeId ??= Guid.NewGuid().ToString();
             await _employeeContext.Employees.AddAsync(employee);
             await _employeeContext.SaveChangesAsync();
             
@@ -31,7 +30,7 @@ namespace CodeChallenge.Repositories
 
         public async Task<Employee> Update(Employee employee)
         {
-            if (employee == null || string.IsNullOrEmpty(employee.EmployeeId)) return null;
+            if (employee == null || employee.EmployeeId == Guid.Empty) return null;
 
             var result = _employeeContext.Employees.Update(employee).Entity;
             await _employeeContext.SaveChangesAsync();
@@ -47,13 +46,13 @@ namespace CodeChallenge.Repositories
                 await AddAsync(compensation.Employee);
             }
 
-            var existing = await GetCompensationByEmployeeId(compensation.Employee?.EmployeeId);
+            var existing = await GetCompensationByEmployeeId(compensation.Employee?.EmployeeId.ToString());
             if (existing != null)
             {
                 throw new InvalidOperationException("Compensation for this employee already exists.");
             }
             
-            await _employeeContext.Compensation.AddAsync(compensation);
+            await _employeeContext.Compensations.AddAsync(compensation);
             await _employeeContext.SaveChangesAsync();
 
             return compensation;
@@ -64,7 +63,7 @@ namespace CodeChallenge.Repositories
             if (string.IsNullOrEmpty(employeeId)) return null;
 
             var result =
-                await _employeeContext.Compensation.SingleOrDefaultAsync(x => x.Employee.EmployeeId == employeeId);
+                await _employeeContext.Compensations.SingleOrDefaultAsync(x => x.Employee.EmployeeId.ToString() == employeeId);
 
             return result;
         }

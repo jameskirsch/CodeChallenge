@@ -149,7 +149,7 @@ namespace CodeChallenge.Tests.Integration
         public async Task Request_Reporting_Structure_With_Full_Reports_Starting_At_Second_Depth_Level()
         {
             const int expectedNumberOfReportsCount = 2;
-            var employee = new Employee { EmployeeId = "03aa1462-ffa9-4978-901b-7c001562cf6f" };
+            var employee = new Employee { EmployeeId = new Guid("03aa1462-ffa9-4978-901b-7c001562cf6f") };
 
             var response = await _httpClient.GetAsync($"api/reporting/{employee.EmployeeId}");
             var actualResult = response.DeserializeContent<ReportingStructure>();
@@ -164,7 +164,7 @@ namespace CodeChallenge.Tests.Integration
         public async Task Request_Reporting_Structure_With_Full_Reports_Returns_No_Reports_If_No_Direct_Reports()
         {
             const int expectedNumberOfReportsCount = 0;
-            var employee = new Employee { EmployeeId = "62c1084e-6e34-4630-93fd-9153afb65309" };
+            var employee = new Employee { EmployeeId = new Guid("62c1084e-6e34-4630-93fd-9153afb65309") };
 
             var response = await _httpClient.GetAsync($"api/reporting/{employee.EmployeeId}");
             var actualResult = response.DeserializeContent<ReportingStructure>();
@@ -179,7 +179,7 @@ namespace CodeChallenge.Tests.Integration
 
         private static readonly Employee EmployeeReportDepthTestTree = new Employee
         {
-            EmployeeId = Guid.NewGuid().ToString(),
+            EmployeeId = Guid.NewGuid(),
             FirstName = "James",
             LastName = "Kirsch",
 
@@ -187,7 +187,7 @@ namespace CodeChallenge.Tests.Integration
             {
                 new Employee
                 {
-                    EmployeeId = Guid.NewGuid().ToString(),
+                    EmployeeId = Guid.NewGuid(),
                     FirstName = "John",
                     LastName = "Doe",
 
@@ -195,7 +195,7 @@ namespace CodeChallenge.Tests.Integration
                     {
                         new Employee
                         {
-                            EmployeeId = Guid.NewGuid().ToString(),
+                            EmployeeId = Guid.NewGuid(),
                             FirstName = "James",
                             LastName = "Doe",
 
@@ -203,7 +203,7 @@ namespace CodeChallenge.Tests.Integration
                             {
                                 new Employee
                                 {
-                                    EmployeeId = Guid.NewGuid().ToString(),
+                                    EmployeeId = Guid.NewGuid(),
                                     FirstName = "Sally",
                                     LastName = "Doe",
                                 }
@@ -213,7 +213,7 @@ namespace CodeChallenge.Tests.Integration
                 },
                 new Employee
                 {
-                    EmployeeId = Guid.NewGuid().ToString(),
+                    EmployeeId = Guid.NewGuid(),
                     FirstName = "Jane",
                     LastName = "Doe",
 
@@ -221,7 +221,7 @@ namespace CodeChallenge.Tests.Integration
                     {
                         new Employee
                         {
-                            EmployeeId = Guid.NewGuid().ToString(),
+                            EmployeeId = Guid.NewGuid(),
                             FirstName = "Sam",
                             LastName = "Doe",
 
@@ -229,7 +229,7 @@ namespace CodeChallenge.Tests.Integration
                             {
                                 new Employee
                                 {
-                                    EmployeeId = Guid.NewGuid().ToString(),
+                                    EmployeeId = Guid.NewGuid(),
                                     FirstName = "Tom",
                                     LastName = "Doe",
                                 }
@@ -239,7 +239,7 @@ namespace CodeChallenge.Tests.Integration
                 },
                 new Employee
                 {
-                    EmployeeId = Guid.NewGuid().ToString(),
+                    EmployeeId = Guid.NewGuid(),
                     FirstName = "Jim",
                     LastName = "Doe",
 
@@ -247,7 +247,7 @@ namespace CodeChallenge.Tests.Integration
                     {
                         new Employee
                         {
-                            EmployeeId = Guid.NewGuid().ToString(),
+                            EmployeeId = Guid.NewGuid(),
                             FirstName = "Elizabeth",
                             LastName = "Doe",
 
@@ -255,7 +255,7 @@ namespace CodeChallenge.Tests.Integration
                             {
                                 new Employee
                                 {
-                                    EmployeeId = Guid.NewGuid().ToString(),
+                                    EmployeeId = Guid.NewGuid(),
                                     FirstName = "Martin",
                                     LastName = "Doe",
                                 }
@@ -268,7 +268,7 @@ namespace CodeChallenge.Tests.Integration
 
         private static readonly Employee EmployeeReportWidthTestTree = new Employee
         {
-            EmployeeId = Guid.NewGuid().ToString(),
+            EmployeeId = Guid.NewGuid(),
             FirstName = "James",
             LastName = "Kirsch",
 
@@ -276,7 +276,7 @@ namespace CodeChallenge.Tests.Integration
             {
                 new Employee
                 {
-                    EmployeeId = Guid.NewGuid().ToString(),
+                    EmployeeId = Guid.NewGuid(),
                     FirstName = "John",
                     LastName = "Doe",
 
@@ -284,25 +284,25 @@ namespace CodeChallenge.Tests.Integration
                     {
                         new Employee
                         {
-                            EmployeeId = Guid.NewGuid().ToString(),
+                            EmployeeId = Guid.NewGuid(),
                             FirstName = "James",
                             LastName = "Doe",
                         },
                         new Employee
                         {
-                            EmployeeId = Guid.NewGuid().ToString(),
+                            EmployeeId = Guid.NewGuid(),
                             FirstName = "James",
                             LastName = "Doe",
                         },
                         new Employee
                         {
-                            EmployeeId = Guid.NewGuid().ToString(),
+                            EmployeeId = Guid.NewGuid(),
                             FirstName = "James",
                             LastName = "Doe",
                         },
                         new Employee
                         {
-                            EmployeeId = Guid.NewGuid().ToString(),
+                            EmployeeId = Guid.NewGuid(),
                             FirstName = "James",
                             LastName = "Doe",
                         }
@@ -310,7 +310,7 @@ namespace CodeChallenge.Tests.Integration
                 },
                 new Employee
                 {
-                    EmployeeId = Guid.NewGuid().ToString(),
+                    EmployeeId = Guid.NewGuid(),
                     FirstName = "Jane",
                     LastName = "Doe",
 
@@ -318,25 +318,25 @@ namespace CodeChallenge.Tests.Integration
                     {
                         new Employee
                         {
-                            EmployeeId = Guid.NewGuid().ToString(),
+                            EmployeeId = Guid.NewGuid(),
                             FirstName = "Sam",
                             LastName = "Doe",
                         },
                         new Employee
                         {
-                            EmployeeId = Guid.NewGuid().ToString(),
+                            EmployeeId = Guid.NewGuid(),
                             FirstName = "James",
                             LastName = "Doe",
                         },
                         new Employee
                         {
-                            EmployeeId = Guid.NewGuid().ToString(),
+                            EmployeeId = Guid.NewGuid(),
                             FirstName = "James",
                             LastName = "Doe",
                         },
                         new Employee
                         {
-                            EmployeeId = Guid.NewGuid().ToString(),
+                            EmployeeId = Guid.NewGuid(),
                             FirstName = "James",
                             LastName = "Doe",
                         }
@@ -344,7 +344,7 @@ namespace CodeChallenge.Tests.Integration
                 },
                 new Employee
                 {
-                    EmployeeId = Guid.NewGuid().ToString(),
+                    EmployeeId = Guid.NewGuid(),
                     FirstName = "Jim",
                     LastName = "Doe",
 
@@ -352,25 +352,25 @@ namespace CodeChallenge.Tests.Integration
                     {
                         new Employee
                         {
-                            EmployeeId = Guid.NewGuid().ToString(),
+                            EmployeeId = Guid.NewGuid(),
                             FirstName = "Elizabeth",
                             LastName = "Doe",
                         },
                         new Employee
                         {
-                            EmployeeId = Guid.NewGuid().ToString(),
+                            EmployeeId = Guid.NewGuid(),
                             FirstName = "James",
                             LastName = "Doe",
                         },
                         new Employee
                         {
-                            EmployeeId = Guid.NewGuid().ToString(),
+                            EmployeeId = Guid.NewGuid(),
                             FirstName = "James",
                             LastName = "Doe",
                         },
                         new Employee
                         {
-                            EmployeeId = Guid.NewGuid().ToString(),
+                            EmployeeId = Guid.NewGuid(),
                             FirstName = "James",
                             LastName = "Doe",
                         }

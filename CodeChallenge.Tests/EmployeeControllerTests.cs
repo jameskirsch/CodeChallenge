@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -86,7 +87,7 @@ namespace CodeChallenge.Tests.Integration
             // Arrange
             var employee = new Employee
             {
-                EmployeeId = "03aa1462-ffa9-4978-901b-7c001562cf6f",
+                EmployeeId = new Guid("03aa1462-ffa9-4978-901b-7c001562cf6f"),
                 Department = "Engineering",
                 FirstName = "Pete",
                 LastName = "Best",
@@ -113,7 +114,7 @@ namespace CodeChallenge.Tests.Integration
             // Arrange
             var employee = new Employee()
             {
-                EmployeeId = "Invalid_Id",
+                EmployeeId = Guid.Empty,
                 Department = "Music",
                 FirstName = "Sunny",
                 LastName = "Bono",
