@@ -30,6 +30,8 @@ namespace CodeChallenge.Data
                 // 
                 // Removing the ForeignKey configuration (HasForeignKey) still fetches all the data correctly, but the shadow property warning persists.
                 // This warning can safely be ignored if the functionality works as expected. I am still seeking a way to fix that, or possibly change the model structure around.
+                // I think I may be able to resolve this by utilizing a Recursive Projection Technique.
+                // TODO: Investigate Recursive Projection Technique in regard to this warning message.
 
                 //.HasForeignKey(e => e.ParentId)  // Foreign key is explicitly set to ParentId (optional)
 
