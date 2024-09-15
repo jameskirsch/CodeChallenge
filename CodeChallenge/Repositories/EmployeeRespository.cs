@@ -5,101 +5,102 @@ using Microsoft.Extensions.Logging;
 using CodeChallenge.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace CodeChallenge.Repositories
+namespace CodeChallenge.Repositories;
+
+public class EmployeeRepository : IEmployeeRepository
 {
-    public class EmployeeRepository : IEmployeeRepository
+    private readonly EmployeeContext _employeeContext;
+    private readonly ILogger<IEmployeeRepository> _logger;
+
+    public EmployeeRepository(ILogger<IEmployeeRepository> logger, EmployeeContext employeeContext)
     {
-        private readonly EmployeeContext _employeeContext;
-        private readonly ILogger<IEmployeeRepository> _logger;
+        _employeeContext = employeeContext;
+        _logger = logger;
+    }
 
-        public EmployeeRepository(ILogger<IEmployeeRepository> logger, EmployeeContext employeeContext)
+    public async Task<Employee> AddAsync(Employee employee)
+    {
+        if (employee == null) return null;
+
+        await _employeeContext.Employees.AddAsync(employee);
+        await _employeeContext.SaveChangesAsync();
+
+        return employee;
+    }
+
+    public async Task<Employee> Update(Employee employee)
+    {
+        if (employee == null || employee.EmployeeId == Guid.Empty) return null;
+
+        var result = _employeeContext.Employees.Update(employee).Entity;
+        await _employeeContext.SaveChangesAsync();
+
+        return result;
+    }
+
+    public async Task<Compensation> AddAsync(Compensation compensation)
+    {
+        if (compensation?.EmployeeId == null)
         {
-            _employeeContext = employeeContext;
-            _logger = logger;
-        }
-       
-        public async Task<Employee> AddAsync(Employee employee)
-        {
-            if (employee == null) return null;
-            
-            await _employeeContext.Employees.AddAsync(employee);
-            await _employeeContext.SaveChangesAsync();
-            
-            return employee;
-        }
-
-        public async Task<Employee> Update(Employee employee)
-        {
-            if (employee == null || employee.EmployeeId == Guid.Empty) return null;
-
-            var result = _employeeContext.Employees.Update(employee).Entity;
-            await _employeeContext.SaveChangesAsync();
-            
-            return result;
-        }
-
-        public async Task<Compensation> AddAsync(Compensation compensation)
-        {
-            if (compensation?.EmployeeId == null)
-            {
-                throw new InvalidOperationException("EmployeeId is required.");
-            }
-
-            var employee = await _employeeContext.Employees.FindAsync(compensation.EmployeeId);
-            if (employee == null)
-            {
-                throw new InvalidOperationException("Employee does not exist.");
-            }
-
-            var existing = await GetCompensationByEmployeeId(compensation.EmployeeId);
-            if (existing != null)
-            {
-                throw new InvalidOperationException("Compensation for this employee already exists.");
-            }
-
-            await _employeeContext.Compensations.AddAsync(compensation);
-            await _employeeContext.SaveChangesAsync();
-
-            return compensation;
+            throw new InvalidOperationException("EmployeeId is required.");
         }
 
-        public async Task<Compensation> GetCompensationByEmployeeId(Guid employeeId)
+        var employee = await _employeeContext.Employees.FindAsync(compensation.EmployeeId);
+        if (employee == null)
         {
-            if (employeeId == Guid.Empty) return null;
-
-            var result = await 
-                _employeeContext.Compensations.SingleOrDefaultAsync(x => x.EmployeeId == employeeId);
-
-            return result;
+            throw new InvalidOperationException("Employee does not exist.");
         }
 
-        public async Task<Employee> GetById(Guid id)
+        var existing = await GetCompensationByEmployeeId(compensation.EmployeeId);
+        if (existing != null)
         {
-            var result = await _employeeContext.Employees
-                .SingleOrDefaultAsync(e => e.EmployeeId == id);
-            
-            return result;
+            throw new InvalidOperationException("Compensation for this employee already exists.");
         }
 
-        public async Task<Employee> GetByIdWithDirectReports(Guid id)
+        await _employeeContext.Compensations.AddAsync(compensation);
+        await _employeeContext.SaveChangesAsync();
+
+        return compensation;
+    }
+
+    public async Task<Compensation> GetCompensationByEmployeeId(Guid employeeId)
+    {
+        if (employeeId == Guid.Empty) return null;
+
+        var result = await _employeeContext.Compensations
+            .SingleOrDefaultAsync(x => x.EmployeeId == employeeId);
+
+        return result;
+    }
+
+    public async Task<Employee> GetById(Guid id)
+    {
+        var result = await _employeeContext.Employees
+            .SingleOrDefaultAsync(e => e.EmployeeId == id);
+
+        return result;
+    }
+
+    public async Task<Employee> GetByIdWithDirectReports(Guid id)
+    {
+        var employee = await _employeeContext.Employees
+            .SingleOrDefaultAsync(e => e.EmployeeId == id);
+
+        if (employee != null)
         {
-            var employee = await _employeeContext.Employees
-                .SingleOrDefaultAsync(e => e.EmployeeId == id);
-
-            if (employee != null)
-            {
-                await LoadEmployeeDirectReportsWithDfs(employee);
-            }
-
-            return employee;
+            await LoadEmployeeDirectReportsWithDfs(employee);
         }
 
-        private async Task LoadEmployeeDirectReportsWithDfs(Employee employee)
+        return employee;
+    }
+
+    private async Task LoadEmployeeDirectReportsWithDfs(Employee employee)
+    {
+        _logger.LogDebug("Loading all Direct Reports from Entry Employee");
+        await _employeeContext.Entry(employee).Collection(e => e.DirectReports).LoadAsync();
+
+        if (employee.DirectReports != null)
         {
-            _logger.LogDebug("Loading all Direct Reports from Entry Employee");
-
-            await _employeeContext.Entry(employee).Collection(e => e.DirectReports).LoadAsync();
-
             foreach (var report in employee.DirectReports)
             {
                 await LoadEmployeeDirectReportsWithDfs(report);
