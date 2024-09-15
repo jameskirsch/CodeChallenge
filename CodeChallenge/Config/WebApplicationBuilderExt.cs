@@ -1,33 +1,31 @@
-﻿using CodeChallenge.Config.MapperProfiles;
-using CodeChallenge.Data;
+﻿using CodeChallenge.Data;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace CodeChallenge.Config
 {
     public static class WebApplicationBuilderExt
     {
-        private static readonly string DB_NAME = "EmployeeDB";
+        private const string DbName = "EmployeeDB";
+
         public static void UseEmployeeDb(this WebApplicationBuilder builder)
         {
-            // Add CORS service
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowReactApp", builder =>
-                {
-                    builder.WithOrigins("http://localhost:3000") // React app running on this origin
-                        .AllowAnyMethod()
-                        .AllowAnyHeader();
-                });
-            });
+            var env = builder.Environment;
 
-            builder.Services.AddAutoMapper(typeof(EmployeeProfile));
-            builder.Services.AddDbContext<EmployeeContext>(options =>
+            if (env.IsDevelopment())
             {
-                options.UseInMemoryDatabase(DB_NAME);
-            });
+                builder.Services.AddDbContext<EmployeeContext>(options =>
+                    options.UseInMemoryDatabase(DbName));
+            }
+            else
+            {
+                builder.Services.AddDbContext<EmployeeContext>(options =>
+                    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            }
         }
     }
 }

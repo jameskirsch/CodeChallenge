@@ -1,11 +1,13 @@
 ﻿using System;
-
+using System.Threading.Tasks;
+using CodeChallenge.Config.MapperProfiles;
 using CodeChallenge.Data;
 using CodeChallenge.Repositories;
 using CodeChallenge.Services;
 
 using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -13,68 +15,103 @@ namespace CodeChallenge.Config
 {
     public class App
     {
-        public WebApplication Configure(string[] args)
+        public async Task<WebApplication> Configure(string[] args)
         {
-            args ??= Array.Empty<string>();
-
             var builder = WebApplication.CreateBuilder(args);
-
             builder.UseEmployeeDb();
-            
-            AddServices(builder.Services);
+
+            ConfigureServices(builder.Services, builder.Environment);
 
             var app = builder.Build();
+            await ConfigureMiddleware(app);
 
-            var env = builder.Environment;
-            if (env.IsDevelopment())
+            return app;
+        }
+
+        private static void ConfigureServices(IServiceCollection services, IWebHostEnvironment env)
+        {
+            services.AddCors(options =>
             {
-                app.UseDeveloperExceptionPage();
-                SeedEmployeeDB();
-            }
+                options.AddPolicy("AllowReactApp", corsBuilder =>
+                {
 
-            app.UseExceptionHandler("/Error");
+                    if (env.IsDevelopment())
+                    {
+                        corsBuilder.WithOrigins("http://localhost:3000")
+                            .AllowAnyMethod()
+                            .AllowAnyHeader();
+                    }
+                    else
+                    {
+                        var productionUrl = services.BuildServiceProvider().GetService<IConfiguration>()["ProductionUrl"];
+                        if (string.IsNullOrEmpty(productionUrl))
+                        {
+                            throw new InvalidOperationException("Production URL must be set in the configuration.");
+                        }
 
-            //Set header with Strict-Transport - Security and automatically redirect http to https
-            // Relevant in a Production setting
-            app.UseHsts();
+                        corsBuilder.WithOrigins("https://example.com")
+                            .AllowAnyMethod()
+                            .AllowAnyHeader();
+                    }
+                });
+            });
+
+            services.AddAutoMapper(typeof(EmployeeProfile));
 
             if (!env.IsDevelopment())
             {
+                services.AddHsts(options =>
+                {
+                    options.MaxAge = TimeSpan.FromDays(365);
+                    options.IncludeSubDomains = true;
+                    options.Preload = true; // requires submission to https://hstspreload.org/
+                });
+            }
+
+            services.AddScoped<IEmployeeService, EmployeeService>();
+            services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            services.AddScoped<IReportingStructureService, ReportingStructureService>();
+            
+            services.AddControllers();
+        }
+
+        private static async Task ConfigureMiddleware(WebApplication app)
+        {
+            var env = app.Environment;
+
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+                await SeedEmployeeDbAsync(app);
+            }
+
+            app.UseExceptionHandler("/Error");
+            
+            if (!env.IsDevelopment())
+            {
+                app.UseHsts();
                 app.UseHttpsRedirection();
             }
 
             app.UseCors("AllowReactApp");
             app.UseAuthorization();
             app.MapControllers();
-
-            return app;
         }
 
-        private void AddServices(IServiceCollection services)
+        private static async Task SeedEmployeeDbAsync(WebApplication app)
         {
+            using var scope = app.Services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<EmployeeContext>();
 
-            // Ensures all requests will be enforced as Https after first visit, or if preload, prior
-            // Relevant in a Production setting
-            services.AddHsts(options =>
+            try
             {
-                options.MaxAge = TimeSpan.FromDays(365);
-                options.IncludeSubDomains = true;
-                options.Preload = true; // would require a submission https://hstspreload.org/
-            });
-
-            services.AddScoped<IEmployeeService, EmployeeService>();
-            services.AddScoped<IEmployeeRepository, EmployeeRepository>();
-            services.AddScoped<IReportingStructureService, ReportingStructureService>();
-
-            services.AddControllers();
-        }
-
-        private void SeedEmployeeDB()
-        {
-            new EmployeeDataSeeder(
-                new EmployeeContext(
-                    new DbContextOptionsBuilder<EmployeeContext>().UseInMemoryDatabase("EmployeeDB").Options
-            )).Seed().Wait();
+                var seeder = new EmployeeDataSeeder(context);
+                await seeder.Seed();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error seeding the database: {ex.Message}");
+            }
         }
     }
 }
