@@ -20,10 +20,13 @@ namespace CodeChallenge.Config
             {
                 builder.Services.AddDbContext<EmployeeContext>(options =>
                     options.UseInMemoryDatabase(DbName));
+                builder.Services.AddDbContext<CompensationContext>(options => options.UseInMemoryDatabase(DbName));
             }
             else
             {
                 builder.Services.AddDbContext<EmployeeContext>(options =>
+                    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                builder.Services.AddDbContext<CompensationContext>(options =>
                     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             }
         }

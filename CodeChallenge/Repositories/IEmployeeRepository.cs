@@ -10,7 +10,5 @@ namespace CodeChallenge.Repositories
         Task<Employee> GetByIdWithDirectReports(Guid id);
         Task<Employee> AddAsync(Employee employee);
         Task<Employee> Update(Employee employee);
-        Task<Compensation> AddAsync(Compensation compensation);
-        Task<Compensation> GetCompensationByEmployeeId(Guid employeeId);
     }
 }

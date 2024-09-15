@@ -13,12 +13,12 @@ namespace CodeChallenge.Controllers
     public class CompensationController : ControllerBase
     {
         private readonly ILogger _logger;
-        private readonly IEmployeeService _employeeService;
+        private readonly ICompensationService _compensationService;
 
-        public CompensationController(ILogger<EmployeeController> logger, IEmployeeService employeeService)
+        public CompensationController(ILogger<EmployeeController> logger, ICompensationService compensationService)
         {
-            _logger = logger;
-            _employeeService = employeeService;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _compensationService = compensationService ?? throw new ArgumentNullException(nameof(compensationService));
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace CodeChallenge.Controllers
 
                 _logger.LogDebug("Received compensation get request for EmployeeId '{EmployeeId}'", id);
 
-                var compensation = await _employeeService.GetCompensationByEmployeeId(id);
+                var compensation = await _compensationService.GetCompensationByEmployeeId(id);
                 if (compensation == null)
                 {
                     _logger.LogInformation("No Compensation record found for EmployeeId '{EmployeeId}'", id);
@@ -78,7 +78,7 @@ namespace CodeChallenge.Controllers
                     return BadRequest(new { message = "Invalid data. EmployeeId is required." });
                 }
 
-                var createdCompensationResult = await _employeeService.Create(compensation);
+                var createdCompensationResult = await _compensationService.Create(compensation);
                 if (createdCompensationResult == null)
                 {
                     _logger.LogWarning("Failed to create compensation record for EmployeeId '{EmployeeId}'", compensation.EmployeeId);

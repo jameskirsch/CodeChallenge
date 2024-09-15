@@ -12,10 +12,10 @@ public class EmployeeRepository : IEmployeeRepository
     private readonly EmployeeContext _employeeContext;
     private readonly ILogger<IEmployeeRepository> _logger;
 
-    public EmployeeRepository(ILogger<IEmployeeRepository> logger, EmployeeContext employeeContext)
+    public EmployeeRepository(ILogger<EmployeeRepository> logger, EmployeeContext employeeContext)
     {
-        _employeeContext = employeeContext;
-        _logger = logger;
+        _employeeContext = employeeContext ?? throw new ArgumentNullException(nameof(employeeContext));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<Employee> AddAsync(Employee employee)
@@ -34,41 +34,6 @@ public class EmployeeRepository : IEmployeeRepository
 
         var result = _employeeContext.Employees.Update(employee).Entity;
         await _employeeContext.SaveChangesAsync();
-
-        return result;
-    }
-
-    public async Task<Compensation> AddAsync(Compensation compensation)
-    {
-        if (compensation?.EmployeeId == null)
-        {
-            throw new InvalidOperationException("EmployeeId is required.");
-        }
-
-        var employee = await _employeeContext.Employees.FindAsync(compensation.EmployeeId);
-        if (employee == null)
-        {
-            throw new InvalidOperationException("Employee does not exist.");
-        }
-
-        var existing = await GetCompensationByEmployeeId(compensation.EmployeeId);
-        if (existing != null)
-        {
-            throw new InvalidOperationException("Compensation for this employee already exists.");
-        }
-
-        await _employeeContext.Compensations.AddAsync(compensation);
-        await _employeeContext.SaveChangesAsync();
-
-        return compensation;
-    }
-
-    public async Task<Compensation> GetCompensationByEmployeeId(Guid employeeId)
-    {
-        if (employeeId == Guid.Empty) return null;
-
-        var result = await _employeeContext.Compensations
-            .SingleOrDefaultAsync(x => x.EmployeeId == employeeId);
 
         return result;
     }

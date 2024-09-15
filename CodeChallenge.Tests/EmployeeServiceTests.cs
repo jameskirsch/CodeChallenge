@@ -12,138 +12,154 @@ using CodeChallenge.Data;
 using CodeChallenge.Tests.Integration.Helpers;
 using Microsoft.EntityFrameworkCore;
 
-namespace CodeChallenge.Tests.Integration
+namespace CodeChallenge.Tests.Integration;
+
+[TestClass]
+public class EmployeeServiceTests
 {
-    [TestClass]
-    public class EmployeeServiceTests
+    private static HttpClient _httpClient;
+    private static TestServer _testServer;
+
+    [ClassInitialize]
+    // Attribute ClassInitialize requires this signature
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
+    public static void InitializeClass(TestContext context)
     {
-        private static HttpClient _httpClient;
-        private static TestServer _testServer;
+        _testServer = new TestServer();
+        _httpClient = _testServer.NewClient();
+    }
 
-        [ClassInitialize]
-        // Attribute ClassInitialize requires this signature
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
-        public static void InitializeClass(TestContext context)
+    [ClassCleanup]
+    public static void CleanUpTest()
+    {
+        _httpClient.Dispose();
+        _testServer.Dispose();
+    }
+
+    [TestMethod]
+    public async Task Ensure_Compensation_Created_And_Returned()
+    {
+        var mockEmployeeRepository = new Mock<IEmployeeRepository>();
+        var mockCompensationRepository = new Mock<ICompensationRepository>();
+        var mapper = new Mock<IMapper>();
+
+        Compensation addedCompensation = null;
+        Employee addedEmployee = null;
+
+        // spy on Add method 
+        mockCompensationRepository.Setup(x => x.AddAsync(It.IsAny<Compensation>()))
+            .Callback<Compensation>(compensation => addedCompensation = compensation)
+            .ReturnsAsync((Compensation comp) => comp);
+
+        mockEmployeeRepository.Setup(x => x.AddAsync(It.IsAny<Employee>()))
+            .Callback<Employee>(emp => addedEmployee = emp)
+            .ReturnsAsync((Employee emp) => emp);
+
+        mockEmployeeRepository.Setup(x => x.GetById(It.IsAny<Guid>()))
+            .ReturnsAsync((Guid _) => addedEmployee);
+        mockCompensationRepository.Setup(x => x.GetCompensationByEmployeeId(It.IsAny<Guid>()))
+            .ReturnsAsync((Guid _) => addedCompensation);  // Return the compensation by employeeId
+
+        // Create test employee and compensation
+        var employeeId = Guid.NewGuid();
+        var employee = new Employee
         {
-            _testServer = new TestServer();
-            _httpClient = _testServer.NewClient();
-        }
+            EmployeeId = employeeId,
+            FirstName = "James",
+            LastName = "Kirsch",
+            Department = "Engineering",
+            Position = "Developer"
+        };
 
-        [ClassCleanup]
-        public static void CleanUpTest()
+        var compensation = new Compensation
         {
-            _httpClient.Dispose();
-            _testServer.Dispose();
-        }
+            Salary = 2000.00M,
+            EffectiveDate = DateTimeOffset.UtcNow,
+            EmployeeId = employeeId
+        };
 
-        [TestMethod]
-        public async Task Ensure_Compensation_Created_And_Returned()
+        // Initialize the service with the mock repository
+        var compensationService = new CompensationService(new NullLogger<CompensationService>(), mockCompensationRepository.Object, mockEmployeeRepository.Object);
+        var employeeService = new EmployeeService(new NullLogger<EmployeeService>(), mockEmployeeRepository.Object, mapper.Object);
+
+        // Create employee record (employee record is required)
+        var createdEmployee = employeeService.Create(employee);
+        Assert.IsNotNull(createdEmployee);
+
+        // Create the compensation record
+        var createdCompensation = await compensationService.Create(compensation);
+
+        // Ensure the compensation is created
+        Assert.IsNotNull(createdCompensation);
+
+        // Retrieve the created compensation
         {
-            var mockEmployeeContextRepo = new Mock<IEmployeeRepository>();
-            var mapper = new Mock<IMapper>();
-
-            Compensation addedCompensation = null;
-            Employee addedEmployee = null;
-
-            // spy on Add method 
-            mockEmployeeContextRepo.Setup(x => x.AddAsync(It.IsAny<Compensation>()))
-                .Callback<Compensation>(compensation => addedCompensation = compensation)
-                .ReturnsAsync((Compensation comp) => comp);
-
-            mockEmployeeContextRepo.Setup(x => x.AddAsync(It.IsAny<Employee>()))
-                .Callback<Employee>(emp => addedEmployee = emp)
-                .ReturnsAsync((Employee emp) => emp);
-
-            mockEmployeeContextRepo.Setup(x => x.GetById(It.IsAny<Guid>()))
-                .ReturnsAsync((Guid _) => addedEmployee);
-            mockEmployeeContextRepo.Setup(x => x.GetCompensationByEmployeeId(It.IsAny<Guid>()))
-                .ReturnsAsync((Guid _) => addedCompensation);  // Return the compensation by employeeId
-
-            // Create test employee and compensation
-            var employeeId = Guid.NewGuid();
-            var employee = new Employee
-            {
-                EmployeeId = employeeId,
-                FirstName = "James",
-                LastName = "Kirsch",
-                Department = "Engineering",
-                Position = "Developer"
-            };
-
-            var compensation = new Compensation
-            {
-                Salary = 2000.00M,
-                EffectiveDate = DateTimeOffset.UtcNow,
-                EmployeeId = employeeId
-            };
-
-            // Initialize the service with the mock repository
-            var employeeService = new EmployeeService(new NullLogger<EmployeeService>(), mockEmployeeContextRepo.Object, mapper.Object);
-
-            // Create employee record (employee record is required)
-            var createdEmployee = employeeService.Create(employee);
-            Assert.IsNotNull(createdEmployee);
-
-            // Create the compensation record
-            var createdCompensation = await employeeService.Create(compensation);
-
-            // Ensure the compensation is created
-            Assert.IsNotNull(createdCompensation);
-
-            // Retrieve the created compensation
-            {
-                var actualCompensationResult = await employeeService.GetCompensationByEmployeeId(compensation.EmployeeId);
-                Assert.IsNotNull(actualCompensationResult);
-            }
+            var actualCompensationResult = await compensationService.GetCompensationByEmployeeId(compensation.EmployeeId);
+            Assert.IsNotNull(actualCompensationResult);
         }
+    }
 
-        [TestMethod]
-        public async Task Ensure_Compensation_Created_And_Persisted_InDatabase()
+    [TestMethod]
+    public async Task Ensure_Compensation_Created_And_Persisted_InDatabase()
+    {
+        // Arrange
+        var employeeId = Guid.NewGuid();
+
+        var employee = new Employee
         {
-            var mapper = new Mock<IMapper>();
+            EmployeeId = employeeId,
+            FirstName = "James",
+            LastName = "Kirsch",
+            Department = "Engineering",
+            Position = "Developer"
+        };
 
-            // Create an in memory database for testing
-            var options = new DbContextOptionsBuilder<EmployeeContext>()
-                .UseInMemoryDatabase(databaseName: "TestEmployeeDatabase")
-                .Options;
+        var compensation = new Compensation
+        {
+            EmployeeId = employeeId,
+            Salary = 2000.00M,
+            EffectiveDate = DateTimeOffset.UtcNow
+        };
 
-            // Use the in-memory database for the EmployeeContext
-            await using var context = new EmployeeContext(options);
-            var employeeService = new EmployeeService(new NullLogger<EmployeeService>(),
-                new EmployeeRepository(new NullLogger<IEmployeeRepository>(), context), mapper.Object);
+        // Use the same in-memory database for both EmployeeContext and CompensationContext
+        const string sharedDatabaseName = "TestSharedDatabase";
+        var employeeContext = GetEmployeeInMemoryContext(sharedDatabaseName);
+        var compensationContext = GetCompensationInMemoryContext(sharedDatabaseName);
 
-            // Create a test employee and compensation
-            var employeeId = Guid.NewGuid();
+        var employeeRepository = new EmployeeRepository(new NullLogger<EmployeeRepository>(), employeeContext);
+        var compensationRepository = new CompensationRepository(new NullLogger<CompensationRepository>(), compensationContext, employeeContext);
 
-            var employee = new Employee
-            {
-                EmployeeId = employeeId,
-                FirstName = "James",
-                LastName = "Kirsch",
-                Department = "Engineering",
-                Position = "Developer"
-            };
+        var employeeService = new EmployeeService(new NullLogger<EmployeeService>(), employeeRepository, Mock.Of<IMapper>());
+        var compensationService = new CompensationService(new NullLogger<CompensationService>(), compensationRepository, employeeRepository);
 
-            var compensation = new Compensation
-            {
-                EmployeeId = employeeId,
-                Salary = 2000.00M,
-                EffectiveDate = DateTimeOffset.UtcNow
-            };
+        // Act
+        await employeeService.Create(employee); // Save the employee to the in-memory DB
+        await compensationService.Create(compensation); // Save the compensation
 
-            // Add the Employee (need to have an employee)
-            await employeeService.Create(employee);
+        // Assert
+        var actualPersistedCompensation = await compensationContext.Compensations
+            .SingleOrDefaultAsync(c => c.EmployeeId == employeeId);
 
-            // Add the Compensation
-            await employeeService.Create(compensation);
+        Assert.IsNotNull(actualPersistedCompensation);
+        Assert.AreEqual(compensation.Salary, actualPersistedCompensation.Salary);
+        Assert.AreEqual(compensation.EffectiveDate, actualPersistedCompensation.EffectiveDate);
+    }
 
-            // Assert
-            // Ensure the compensation was persisted to the database
-            var actualPersistedCompensation = await context.Compensations.SingleOrDefaultAsync(c => c.EmployeeId == employeeId);
+    private static EmployeeContext GetEmployeeInMemoryContext(string databaseName)
+    {
+        var options = new DbContextOptionsBuilder<EmployeeContext>()
+            .UseInMemoryDatabase(databaseName)
+            .Options;
 
-            Assert.IsNotNull(actualPersistedCompensation);
-            Assert.AreEqual(compensation.Salary, actualPersistedCompensation.Salary);
-            Assert.AreEqual(compensation.EffectiveDate, actualPersistedCompensation.EffectiveDate);
-        }
+        return new EmployeeContext(options);
+    }
+
+    private static CompensationContext GetCompensationInMemoryContext(string databaseName)
+    {
+        var options = new DbContextOptionsBuilder<CompensationContext>()
+            .UseInMemoryDatabase(databaseName)
+            .Options;
+
+        return new CompensationContext(options);
     }
 }
