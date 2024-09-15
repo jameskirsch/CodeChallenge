@@ -3,9 +3,6 @@ using System.Threading.Tasks;
 using CodeChallenge.Models;
 using Microsoft.Extensions.Logging;
 using CodeChallenge.Repositories;
-using Microsoft.EntityFrameworkCore.Query.Internal;
-using CodeChallenge.Data;
-using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 
 namespace CodeChallenge.Services
@@ -32,9 +29,9 @@ namespace CodeChallenge.Services
             return employee;
         }
 
-        public async Task<Employee> GetById(string id)
+        public async Task<Employee> GetById(Guid id)
         {
-            if(!String.IsNullOrEmpty(id))
+            if(id != Guid.Empty)
             {
                 return await _employeeRepository.GetById(id);
             }
@@ -61,23 +58,22 @@ namespace CodeChallenge.Services
                 throw new ArgumentNullException(nameof(compensation), "Compensation objection cannot be null");
             }
 
-            //// Check if EmployeeId is a valid GUID
-            if (string.IsNullOrEmpty(compensation.EmployeeId) || !Guid.TryParse(compensation.EmployeeId, out var employeeGuid))
+            if (compensation.EmployeeId == Guid.Empty)
             {
                 _logger.LogError("Invalid EmployeeId format.");
                 throw new ArgumentException("EmployeeId must be a valid GUID in Compensation Object.", nameof(compensation));
             }
-
-            // Check for existing employee, if not found, return appropriate error
+            
             var existingEmployee = await _employeeRepository.GetById(compensation.EmployeeId);
             if (existingEmployee == null)
             {
                 _logger.LogError("No Employee Record found to associate new Compensation Record with");
                 throw new InvalidOperationException("Employee not found. Compensation cannot be created.");
             }
-            
+        
             // If the employee exists, attach it to the compensation record.
-            compensation.Employee = existingEmployee;
+            compensation.EmployeeId = existingEmployee.EmployeeId;
+            
 
             // Add the new Compensation Record with the Employee attached, and Save
             await _employeeRepository.AddAsync(compensation);
@@ -85,15 +81,15 @@ namespace CodeChallenge.Services
             return compensation;
         }
 
-        public async Task<Compensation> GetCompensationByEmployeeId(string id)
+        public async Task<Compensation> GetCompensationByEmployeeId(Guid id)
         {
-            if (string.IsNullOrEmpty(id)) return null;
+            if (id == Guid.Empty) return null;
             return await _employeeRepository.GetCompensationByEmployeeId(id);
         }
 
-        public async Task<Employee> GetByIdWithDirectReports(string id)
+        public async Task<Employee> GetByIdWithDirectReports(Guid id)
         {
-            return !string.IsNullOrEmpty(id) 
+            return id != Guid.Empty 
                 ? await _employeeRepository.GetByIdWithDirectReports(id) : null;
         }
 

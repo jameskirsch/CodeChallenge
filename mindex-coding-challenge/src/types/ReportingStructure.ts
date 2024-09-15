@@ -1,6 +1,6 @@
 import { Employee } from "./Employee"
 
 export type ReportingStructure = {
-    Employee: Employee
+    employee: Employee
     numberOfReports?: number
 }

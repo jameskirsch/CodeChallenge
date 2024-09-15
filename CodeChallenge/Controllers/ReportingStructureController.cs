@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using CodeChallenge.ViewModels;
 
 namespace CodeChallenge.Controllers
 {
@@ -13,12 +15,15 @@ namespace CodeChallenge.Controllers
     {
         private readonly ILogger _logger;
         private readonly IReportingStructureService _reportingStructureService;
+        private readonly IMapper _mapper;
 
         public ReportingStructureController(
             ILogger<EmployeeController> logger,
-            IReportingStructureService reportingStructureService)
+            IReportingStructureService reportingStructureService, 
+            IMapper mapper)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _reportingStructureService =
                 reportingStructureService ?? throw new ArgumentNullException(nameof(reportingStructureService));
         }
@@ -33,13 +38,13 @@ namespace CodeChallenge.Controllers
         /// Returns a 500 Internal Server Error response if an unexpected error occurs.
         /// </returns>
         [HttpGet("{id}", Name = "getReportStructureByEmployeeId")]
-        public async Task<IActionResult> GetReportStructureByEmployeeId(string id)
+        public async Task<IActionResult> GetReportStructureByEmployeeId(Guid id)
         {
             try
             {
-                if (string.IsNullOrEmpty(id))
+                if (id == Guid.Empty)
                 {
-                    _logger.LogWarning("Invalid EmployeeId: EmployeeId is null or empty.");
+                    _logger.LogWarning("Invalid EmployeeId: EmployeeId is an invalid Guid.");
                     return BadRequest(new { message = "EmployeeId is required." });
                 }
 
@@ -53,8 +58,10 @@ namespace CodeChallenge.Controllers
                     return NotFound(new { message = $"No reporting structure found for EmployeeId {id}." });
                 }
 
+                var reportingStructureViewModel = _mapper.Map<ReportingStructureViewModel>(reportingStructure);
+
                 _logger.LogDebug("Successfully retrieved Reporting Structure for EmployeeId: {EmployeeId}", id);
-                return Ok(reportingStructure);
+                return Ok(reportingStructureViewModel);
 
             }
             catch (Exception ex)

@@ -40,46 +40,51 @@ namespace CodeChallenge.Repositories
 
         public async Task<Compensation> AddAsync(Compensation compensation)
         {
-            if (compensation == null) return null;
-            if (compensation.Employee?.EmployeeId == null)
+            if (compensation?.EmployeeId == null)
             {
-                await AddAsync(compensation.Employee);
+                throw new InvalidOperationException("EmployeeId is required.");
             }
 
-            var existing = await GetCompensationByEmployeeId(compensation.Employee?.EmployeeId.ToString());
+            var employee = await _employeeContext.Employees.FindAsync(compensation.EmployeeId);
+            if (employee == null)
+            {
+                throw new InvalidOperationException("Employee does not exist.");
+            }
+
+            var existing = await GetCompensationByEmployeeId(compensation.EmployeeId);
             if (existing != null)
             {
                 throw new InvalidOperationException("Compensation for this employee already exists.");
             }
-            
+
             await _employeeContext.Compensations.AddAsync(compensation);
             await _employeeContext.SaveChangesAsync();
 
             return compensation;
         }
 
-        public async Task<Compensation> GetCompensationByEmployeeId(string employeeId)
+        public async Task<Compensation> GetCompensationByEmployeeId(Guid employeeId)
         {
-            if (string.IsNullOrEmpty(employeeId)) return null;
+            if (employeeId == Guid.Empty) return null;
 
-            var result =
-                await _employeeContext.Compensations.SingleOrDefaultAsync(x => x.Employee.EmployeeId.ToString() == employeeId);
+            var result = await 
+                _employeeContext.Compensations.SingleOrDefaultAsync(x => x.EmployeeId == employeeId);
 
             return result;
         }
 
-        public async Task<Employee> GetById(string id)
+        public async Task<Employee> GetById(Guid id)
         {
             var result = await _employeeContext.Employees
-                .SingleOrDefaultAsync(e => e.EmployeeId.ToString() == id);
+                .SingleOrDefaultAsync(e => e.EmployeeId == id);
             
             return result;
         }
-        
-        public async Task<Employee> GetByIdWithDirectReports(string id)
+
+        public async Task<Employee> GetByIdWithDirectReports(Guid id)
         {
             var employee = await _employeeContext.Employees
-                .SingleOrDefaultAsync(e => e.EmployeeId.ToString() == id);
+                .SingleOrDefaultAsync(e => e.EmployeeId == id);
 
             if (employee != null)
             {
@@ -99,13 +104,6 @@ namespace CodeChallenge.Repositories
             {
                 await LoadEmployeeDirectReportsWithDfs(report);
             }
-        }
-
-        public async Task<Employee> Delete(Employee employee)
-        {
-            var result = _employeeContext.Remove(employee).Entity;
-            await _employeeContext.SaveChangesAsync();
-            return result;
         }
     }
 }

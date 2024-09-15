@@ -6,6 +6,6 @@ namespace CodeChallenge.Services
 {
     public interface IReportingStructureService
     {
-        public Task<ReportingStructure> GetReportingStructureByEmployeeId(string id);
+        public Task<ReportingStructure> GetReportingStructureByEmployeeId(Guid id);
     }
 }

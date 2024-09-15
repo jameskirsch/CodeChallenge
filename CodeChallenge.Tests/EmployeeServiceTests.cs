@@ -54,10 +54,10 @@ namespace CodeChallenge.Tests.Integration
                 .Callback<Employee>(emp => addedEmployee = emp)
                 .ReturnsAsync((Employee emp) => emp);
 
-            mockEmployeeContextRepo.Setup(x => x.GetById(It.IsAny<string>()))
-                .ReturnsAsync((string _) => addedEmployee);
-            mockEmployeeContextRepo.Setup(x => x.GetCompensationByEmployeeId(It.IsAny<string>()))
-                .ReturnsAsync((string _) => addedCompensation);  // Return the compensation by employeeId
+            mockEmployeeContextRepo.Setup(x => x.GetById(It.IsAny<Guid>()))
+                .ReturnsAsync((Guid _) => addedEmployee);
+            mockEmployeeContextRepo.Setup(x => x.GetCompensationByEmployeeId(It.IsAny<Guid>()))
+                .ReturnsAsync((Guid _) => addedCompensation);  // Return the compensation by employeeId
 
             // Create test employee and compensation
             var employeeId = Guid.NewGuid();
@@ -72,9 +72,9 @@ namespace CodeChallenge.Tests.Integration
 
             var compensation = new Compensation
             {
-                EmployeeId = employeeId.ToString(),
                 Salary = 2000.00M,
-                EffectiveDate = DateTimeOffset.UtcNow
+                EffectiveDate = DateTimeOffset.UtcNow,
+                EmployeeId = employeeId
             };
 
             // Initialize the service with the mock repository
@@ -91,9 +91,10 @@ namespace CodeChallenge.Tests.Integration
             Assert.IsNotNull(createdCompensation);
 
             // Retrieve the created compensation
-            var actualCompensationResult = await employeeService.GetCompensationByEmployeeId(compensation.Employee.EmployeeId.ToString());
-
-            Assert.IsNotNull(actualCompensationResult);
+            {
+                var actualCompensationResult = await employeeService.GetCompensationByEmployeeId(compensation.EmployeeId);
+                Assert.IsNotNull(actualCompensationResult);
+            }
         }
 
         [TestMethod]
@@ -125,7 +126,7 @@ namespace CodeChallenge.Tests.Integration
 
             var compensation = new Compensation
             {
-                EmployeeId = employeeId.ToString(),
+                EmployeeId = employeeId,
                 Salary = 2000.00M,
                 EffectiveDate = DateTimeOffset.UtcNow
             };
@@ -138,7 +139,7 @@ namespace CodeChallenge.Tests.Integration
 
             // Assert
             // Ensure the compensation was persisted to the database
-            var actualPersistedCompensation = await context.Compensations.SingleOrDefaultAsync(c => c.EmployeeId == employeeId.ToString());
+            var actualPersistedCompensation = await context.Compensations.SingleOrDefaultAsync(c => c.EmployeeId == employeeId);
 
             Assert.IsNotNull(actualPersistedCompensation);
             Assert.AreEqual(compensation.Salary, actualPersistedCompensation.Salary);

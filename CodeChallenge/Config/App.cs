@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using CodeChallenge.Config.MapperProfiles;
 using CodeChallenge.Data;
@@ -57,6 +58,7 @@ namespace CodeChallenge.Config
             });
 
             services.AddAutoMapper(typeof(EmployeeProfile));
+            services.AddAutoMapper(typeof(ReportingStructureProfile));
 
             if (!env.IsDevelopment())
             {
@@ -71,7 +73,7 @@ namespace CodeChallenge.Config
             services.AddScoped<IEmployeeService, EmployeeService>();
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             services.AddScoped<IReportingStructureService, ReportingStructureService>();
-            
+
             services.AddControllers();
         }
 

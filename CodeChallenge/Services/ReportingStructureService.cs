@@ -25,7 +25,7 @@ namespace CodeChallenge.Services
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task<ReportingStructure> GetReportingStructureByEmployeeId(string id)
+        public async Task<ReportingStructure> GetReportingStructureByEmployeeId(Guid id)
         {
             _logger.LogDebug("Getting Reporting Structure By EmployeeId");
 

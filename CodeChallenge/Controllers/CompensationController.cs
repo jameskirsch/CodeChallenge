@@ -30,13 +30,13 @@ namespace CodeChallenge.Controllers
         /// If no Compensation record is found for the provided EmployeeId, returns a 404 Not Found response.
         /// </returns>
         [HttpGet("{id}", Name = "getCompensationByEmployeeById")]
-        public async Task<IActionResult> GetCompensationByEmployeeById(string id)
+        public async Task<IActionResult> GetCompensationByEmployeeById(Guid id)
         {
             try
             {
-                if (string.IsNullOrEmpty(id))
+                if (id == Guid.Empty)
                 {
-                    _logger.LogWarning("EmployeeId is null or empty in GetCompensationByEmployeeById.");
+                    _logger.LogWarning("EmployeeId is not a valid Guid in GetCompensationByEmployeeById.");
                     return BadRequest(new { message = "EmployeeId is required." });
                 }
 

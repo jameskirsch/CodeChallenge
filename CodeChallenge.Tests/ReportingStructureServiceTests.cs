@@ -86,11 +86,11 @@ namespace CodeChallenge.Tests.Integration
         [TestMethod]
         public async Task Get_Reporting_Structure_With_Total_Reports_By_Employee_Id_By_Depth()
         {
-            const string employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
+            var employeeId = new Guid("16a596ae-edd3-4847-99fe-c4518e82c86f");
             var employeeService = new Mock<IEmployeeService>();
             const int expected = 9;
 
-            employeeService.Setup(x => x.GetByIdWithDirectReports(It.IsAny<string>()))
+            employeeService.Setup(x => x.GetByIdWithDirectReports(It.IsAny<Guid>()))
                 .ReturnsAsync(EmployeeReportDepthTestTree);
 
             var reportingStructureService =
@@ -106,11 +106,11 @@ namespace CodeChallenge.Tests.Integration
         [TestMethod]
         public async Task Get_Reporting_Structure_With_Total_Reports_By_Employee_Id_By_Width()
         {
-            const string employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
+            var employeeId = new Guid("16a596ae-edd3-4847-99fe-c4518e82c86f");
             var employeeService = new Mock<IEmployeeService>();
             const int expected = 15;
 
-            employeeService.Setup(x => x.GetByIdWithDirectReports(It.IsAny<string>()))
+            employeeService.Setup(x => x.GetByIdWithDirectReports(It.IsAny<Guid>()))
                 .ReturnsAsync(EmployeeReportWidthTestTree);
 
             var reportingStructureService =

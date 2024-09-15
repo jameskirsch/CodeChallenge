@@ -1,14 +1,14 @@
-﻿using System.Text.Json.Serialization;
+﻿using System;
 
 namespace CodeChallenge.Models
 {
     public class ReportingStructure
     {
-        [JsonPropertyName("Employee")]
+        public Guid ReportingStructureId { get; set; }
         public Employee Employee { get; set; }
 
-        // should equal the total number of reports under a given employee
-        // is determined to be the number of directReports for an employee and all of their direct reports
+        // Represents the total count of all direct and indirect reports under a given employee.
+        // This includes the employee's immediate direct reports as well as all subsequent levels of reports in the hierarchy.
         public int? NumberOfReports { get; set; }
     }
 }

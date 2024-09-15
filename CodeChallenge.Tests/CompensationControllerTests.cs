@@ -36,10 +36,13 @@ namespace CodeChallenge.Tests.Integration
         [TestMethod]
         public async Task CreateCompensation_Returns_Created()
         {
+            var employeeId = new Guid("16a596ae-edd3-4847-99fe-c4518e82c86f");
+
             // Arrange
             var compensation = new Compensation
             {
-                EmployeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f",
+                CompensationId = Guid.NewGuid(),
+                EmployeeId = employeeId,
                 Salary = 2000.00M,
                 EffectiveDate = DateTimeOffset.UtcNow
             };

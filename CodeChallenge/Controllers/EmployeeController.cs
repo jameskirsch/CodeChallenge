@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using CodeChallenge.Services;
 using CodeChallenge.Models;
+using CodeChallenge.ViewModels;
 
 namespace CodeChallenge.Controllers
 {
@@ -13,11 +15,13 @@ namespace CodeChallenge.Controllers
     {
         private readonly ILogger _logger;
         private readonly IEmployeeService _employeeService;
+        private readonly IMapper _mapper;
 
-        public EmployeeController(ILogger<EmployeeController> logger, IEmployeeService employeeService)
+        public EmployeeController(ILogger<EmployeeController> logger, IEmployeeService employeeService, IMapper mapper)
         {
-            _logger = logger;
-            _employeeService = employeeService;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _employeeService = employeeService ?? throw new ArgumentNullException(nameof(employeeService));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper)) ;
         }
 
         [HttpPost]
@@ -30,8 +34,8 @@ namespace CodeChallenge.Controllers
             return CreatedAtRoute("getEmployeeById", new { id = employee.EmployeeId }, employee);
         }
 
-        [HttpGet("{id}", Name = "getEmployeeById")]
-        public async Task<IActionResult> GetEmployeeById(string id)
+        [HttpGet("{id:guid}", Name = "getEmployeeById")]
+        public async Task<IActionResult> GetEmployeeById(Guid id)
         {
             _logger.LogDebug("Received employee get request for '{id}'", id);
 
@@ -40,11 +44,13 @@ namespace CodeChallenge.Controllers
             if (employee == null)
                 return NotFound();
 
-            return Ok(employee);
+            var employeeViewModel = _mapper.Map<EmployeeViewModel>(employee);
+
+            return Ok(employeeViewModel);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(string id, [FromBody]Employee updateModel)
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody]Employee updateModel)
         {
             _logger.LogDebug("Received employee update request for '{id}'", id);
 
@@ -57,13 +63,6 @@ namespace CodeChallenge.Controllers
             var updatedEmployee = await _employeeService.Update(existingEmployee, updateModel);
 
             return Ok(updatedEmployee);
-        }
-
-        //TODO: Setup Delete Operation for Employee
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(string id)
-        {
-            throw new NotImplementedException("Still need to setup");
         }
     }
 }
