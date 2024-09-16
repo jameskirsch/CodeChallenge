@@ -19,15 +19,22 @@ public static class WebApplicationBuilderExt
         if (env.IsDevelopment())
         {
             builder.Services.AddDbContext<EmployeeContext>(options =>
-                options.UseInMemoryDatabase(DbName));
-            builder.Services.AddDbContext<CompensationContext>(options => options.UseInMemoryDatabase(DbName));
+                options.UseInMemoryDatabase(DbName)
+                    .UseLazyLoadingProxies());
+
+            builder.Services.AddDbContext<CompensationContext>(options =>
+                options.UseInMemoryDatabase(DbName)
+                    .UseLazyLoadingProxies());
         }
         else
         {
             builder.Services.AddDbContext<EmployeeContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+                    .UseLazyLoadingProxies());
+
             builder.Services.AddDbContext<CompensationContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+                    .UseLazyLoadingProxies());
         }
     }
 }

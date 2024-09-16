@@ -19,22 +19,25 @@ public class EmployeeControllerTests
     [ClassInitialize]
     // Attribute ClassInitialize requires this signature
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
-    public static void InitializeClass(TestContext context)
+    public static void SetupTest(TestContext context)
     {
         _testServer = new TestServer();
         _httpClient = _testServer.NewClient();
     }
 
     [ClassCleanup]
-    public static void CleanUpTest()
+    public static async Task ClassCleanUp()
     {
-        _httpClient.Dispose();
-        _testServer.Dispose();
+        await _testServer.DisposeAsync();
+        _httpClient = _testServer.NewClient();
     }
 
     [TestMethod]
-    public void CreateEmployee_Returns_Created()
+    public async Task CreateEmployee_Returns_Created()
     {
+        await using var testServer = new TestServer();
+        using var httpClient = testServer.NewClient();
+
         // Arrange
         var employee = new Employee()
         {
@@ -47,7 +50,7 @@ public class EmployeeControllerTests
         var requestContent = new JsonSerialization().ToJson(employee);
 
         // Execute
-        var postRequestTask = _httpClient.PostAsync("api/employee",
+        var postRequestTask = httpClient.PostAsync("api/employee",
             new StringContent(requestContent, Encoding.UTF8, "application/json"));
         var response = postRequestTask.Result;
 
@@ -66,17 +69,16 @@ public class EmployeeControllerTests
     public async Task GetEmployeeById_Returns_Ok()
     {
         // Arrange
-        var employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
-        var expectedFirstName = "John";
-        var expectedLastName = "Lennon";
+        const string employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
+        const string expectedFirstName = "John";
+        const string expectedLastName = "Lennon";
 
         // Execute
         var getRequestTask = await _httpClient.GetAsync($"api/employee/{employeeId}");
-        var response = getRequestTask;
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-        var employee = response.DeserializeContent<Employee>();
+        Assert.AreEqual(HttpStatusCode.OK, getRequestTask.StatusCode);
+        var employee = getRequestTask.DeserializeContent<Employee>();
         Assert.AreEqual(expectedFirstName, employee.FirstName);
         Assert.AreEqual(expectedLastName, employee.LastName);
     }
@@ -109,10 +111,10 @@ public class EmployeeControllerTests
     }
 
     [TestMethod]
-    public void UpdateEmployee_Returns_NotFound()
+    public async Task UpdateEmployee_Returns_NotFound()
     {
         // Arrange
-        var employee = new Employee()
+        var employee = new Employee
         {
             EmployeeId = Guid.Empty,
             Department = "Music",
@@ -123,11 +125,10 @@ public class EmployeeControllerTests
         var requestContent = new JsonSerialization().ToJson(employee);
 
         // Execute
-        var postRequestTask = _httpClient.PutAsync($"api/employee/{employee.EmployeeId}",
+        var postRequestTask = await _httpClient.PutAsync($"api/employee/{employee.EmployeeId}",
             new StringContent(requestContent, Encoding.UTF8, "application/json"));
-        var response = postRequestTask.Result;
 
         // Assert
-        Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.AreEqual(HttpStatusCode.NotFound, postRequestTask.StatusCode);
     }
 }

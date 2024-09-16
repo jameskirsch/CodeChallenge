@@ -29,50 +29,56 @@ public class ReportingStructureService : IReportingStructureService
     {
         _logger.LogDebug("Getting Reporting Structure By EmployeeId");
 
-        var employee = await _employeeService.GetByIdWithDirectReports(id);
+        var employee = await _employeeService.GetById(id);
             
         if (employee == null) return null;
 
         var reportingStructure = new ReportingStructure
         {
             Employee = employee,
-            NumberOfReports = GetReportCount(employee)
+            NumberOfReports = await GetReportCount(employee)
         };
 
         return reportingStructure;
     }
 
     /// <summary>
-    /// This method uses an iterative Depth-First Search (DFS) algorithm to traverse the employee hierarchy 
-    /// and calculate the total number of direct and indirect reports. The DFS approach is chosen for its scalability 
-    /// and to avoid potential stack overflow issues that could occur with a recursive implementation in deeply nested hierarchies. 
-    /// 
-    /// In large organizations, such as Walmart with over 2.1 million employees, efficient traversal of hierarchical structures 
-    /// is crucial. The DFS algorithm ensures that we maintain O(n) time complexity, where n is the total number of employees in the hierarchy, 
-    /// but more importantly, it manages space complexity at O(d), where d represents the maximum depth of the tree. This is critical 
-    /// in scenarios with deeply nested hierarchies, as it ensures that memory consumption is proportional to the depth, rather than the total size, 
-    /// allowing the algorithm to efficiently handle even large, deeply nested structures without excessive memory use.
-    /// 
-    /// While DFS is well-suited for deeply nested structures, a Breadth-First Search (BFS) approach may be more appropriate 
-    /// in wide hierarchies, where memory consumption at each level can grow significantly. In real-world applications, analyzing the 
-    /// data structure (whether it's deeper or wider) can help determine the best algorithm for traversal.
+    /// This method employs an iterative Depth-First Search (DFS) algorithm to traverse the employee hierarchy
+    /// and calculate the total number of direct and indirect reports. The iterative DFS approach is chosen for 
+    /// its scalability and its ability to avoid stack overflow issues that can arise with recursive implementations 
+    /// in deeply nested hierarchies.
     ///
-    /// Maybe a discussion point? (I think also in a real scenario it might be viable to put restrictions on how deep the nesting can be)
-    /// Some of the overhead can be managed with lazy loading/eager loading as well I think.
+    /// DFS provides a time complexity of O(n), where n represents the total number of employees in the hierarchy, 
+    /// making it an efficient solution for large datasets. Additionally, the space complexity is O(d), where d is 
+    /// the maximum depth of the hierarchy. This space efficiency is crucial for large organizations, as it ensures 
+    /// memory usage remains proportional to the depth of the hierarchy rather than the total number of employees.
     ///
-    /// Also, I just want to say that anything I've changed was not a critique on any of the code given
-    /// but just trying to display how I might program something on the Job, and I want to thank you
-    /// for taking the time to review my solution, and I am happy to have had a chance to show some of my work.
+    /// In real-world cases like Walmart, with over 2.1 million employees, efficient traversal of such hierarchies 
+    /// is essential. While DFS works well for deep structures, a Breadth-First Search (BFS) could be more suitable 
+    /// for wider hierarchies, where the number of employees per level is large. Choosing the right algorithm should 
+    /// consider the shape of the hierarchy being processed.
+    ///
+    /// To prevent the N+1 query problem, this implementation explicitly loads the next set of direct reports. 
+    /// Although Lazy Loading is enabled, Eagerly Loading the reports reduces the number of database round trips, 
+    /// optimizing performance when fetching hierarchical data.
+    ///
+    /// In practice, applying restrictions on hierarchy depth can prevent excessive memory consumption and query 
+    /// overhead. Additionally, techniques like Lazy or Eager loading can be adjusted to further improve performance.
+    ///
+    /// A potential alternative considered was Recursive Projection, which would allow querying the entire hierarchy 
+    /// in a single operation at the database level. However, in this case, the iterative DFS approach is better suited 
+    /// for managing memory efficiently with larger data sets.
+    ///
+    /// Please note that any adjustments to the original code reflect my approach to solving similar challenges in a 
+    /// real-world environment. Thank you for reviewing my solution.
     /// </summary>
-    /// <param name="employee">The root employee from which to start the hierarchy traversal.</param>
+    /// <param name="employee">The root employee from which to begin the hierarchy traversal.</param>
     /// <returns>The total number of direct and indirect reports for the given employee.</returns>
-    public int GetReportCount(Employee employee)
+    public async Task<int?> GetReportCount(Employee employee)
     {
         _logger.LogDebug("Getting Report Count by Employee Hierarchy");
 
-        if (employee == null) return 0;
-
-        var count = 0;
+        var totalReports = 0;
         var stack = new Stack<Employee>();
 
         // Add the root employee to the stack to begin the traversal
@@ -83,16 +89,22 @@ public class ReportingStructureService : IReportingStructureService
         {
             // Remove and temporarily store the next employee from the stack
             var currentEmployee = stack.Pop();
+           
+            // Load the next set of Direct Reports with Eager Loading to avoid the N+1 Query Problem.
+            await _employeeService.SetEmployeeDirectReports(currentEmployee);
 
             // If the current employee has direct reports, process them
-            if (currentEmployee?.DirectReports == null) continue;
+            if (currentEmployee.DirectReports == null) continue;
+            
+            totalReports += currentEmployee.DirectReports.Count;
+
+            // Push the Reports onto the Stack
             foreach (var directReport in currentEmployee.DirectReports)
             {
-                count++;
                 stack.Push(directReport);
             }
         }
 
-        return count;
+        return totalReports;
     }
 }

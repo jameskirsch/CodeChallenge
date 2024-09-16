@@ -20,6 +20,8 @@ public class EmployeeRepository : IEmployeeRepository
 
     public async Task<Employee> AddAsync(Employee employee)
     {
+        _logger.LogInformation("Attempting to Create a new Employee Record");
+
         if (employee == null) return null;
 
         await _employeeContext.Employees.AddAsync(employee);
@@ -46,30 +48,8 @@ public class EmployeeRepository : IEmployeeRepository
         return result;
     }
 
-    public async Task<Employee> GetByIdWithDirectReports(Guid id)
+    public async Task SetEmployeeDirectReportCollection(Employee employee)
     {
-        var employee = await _employeeContext.Employees
-            .SingleOrDefaultAsync(e => e.EmployeeId == id);
-
-        if (employee != null)
-        {
-            await LoadEmployeeDirectReportsWithDfs(employee);
-        }
-
-        return employee;
-    }
-
-    private async Task LoadEmployeeDirectReportsWithDfs(Employee employee)
-    {
-        _logger.LogDebug("Loading all Direct Reports from Entry Employee");
-        await _employeeContext.Entry(employee).Collection(e => e.DirectReports).LoadAsync();
-
-        if (employee.DirectReports != null)
-        {
-            foreach (var report in employee.DirectReports)
-            {
-                await LoadEmployeeDirectReportsWithDfs(report);
-            }
-        }
+         await _employeeContext.Entry(employee).Collection(e => e.DirectReports).LoadAsync();
     }
 }

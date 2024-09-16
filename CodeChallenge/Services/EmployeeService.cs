@@ -22,8 +22,9 @@ public class EmployeeService : IEmployeeService
 
     public async Task<Employee> Create(Employee employee)
     {
-        if (employee == null) return null;
+        _logger.LogInformation("Attempting to Create a new Employee Record");
 
+        if (employee == null) return null;
         await _employeeRepository.AddAsync(employee);
 
         return employee;
@@ -39,10 +40,9 @@ public class EmployeeService : IEmployeeService
         return null;
     }
 
-    public async Task<Employee> GetByIdWithDirectReports(Guid id)
+    public async Task SetEmployeeDirectReports(Employee employee)
     {
-        return id != Guid.Empty 
-            ? await _employeeRepository.GetByIdWithDirectReports(id) : null;
+        await _employeeRepository.SetEmployeeDirectReportCollection(employee);
     }
 
     public async Task<Employee> Update(Employee existingModel, Employee updateModel)
