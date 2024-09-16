@@ -23,17 +23,17 @@ public class EmployeeServiceTests
     [ClassInitialize]
     // Attribute ClassInitialize requires this signature
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
-    public static void InitializeClass(TestContext context)
+    public static void SetupTest(TestContext context)
     {
         _testServer = new TestServer();
         _httpClient = _testServer.NewClient();
     }
 
     [ClassCleanup]
-    public static void CleanUpTest()
+    public static async Task ClassCleanUp()
     {
-        _httpClient.Dispose();
-        _testServer.Dispose();
+        await _testServer.DisposeAsync();
+        _httpClient = _testServer.NewClient();
     }
 
     [TestMethod]
