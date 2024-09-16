@@ -2,17 +2,16 @@
 using AutoMapper;
 using CodeChallenge.ViewModels;
 
-namespace CodeChallenge.Config.MapperProfiles
+namespace CodeChallenge.Config.MapperProfiles;
+
+public class EmployeeProfile : Profile
 {
-    public class EmployeeProfile : Profile
+    public EmployeeProfile()
     {
-        public EmployeeProfile()
-        {
-            CreateMap<Employee, Employee>();
-            CreateMap<Employee, EmployeeViewModel>()
-                .ForMember(dest => dest.DirectReports, 
-                    opt => opt
-                        .MapFrom(src => src.DirectReports));
-        }
+        CreateMap<Employee, Employee>();
+        CreateMap<Employee, EmployeeViewModel>()
+            .ForMember(dest => dest.DirectReports, 
+                opt => opt
+                    .MapFrom(src => src.DirectReports));
     }
 }

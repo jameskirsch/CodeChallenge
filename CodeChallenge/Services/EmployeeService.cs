@@ -5,54 +5,53 @@ using Microsoft.Extensions.Logging;
 using CodeChallenge.Repositories;
 using AutoMapper;
 
-namespace CodeChallenge.Services
+namespace CodeChallenge.Services;
+
+public class EmployeeService : IEmployeeService
 {
-    public class EmployeeService : IEmployeeService
-    {
-        private readonly IEmployeeRepository _employeeRepository;
-        private readonly ILogger<EmployeeService> _logger;
-        private readonly IMapper _mapper;
+    private readonly IEmployeeRepository _employeeRepository;
+    private readonly ILogger<EmployeeService> _logger;
+    private readonly IMapper _mapper;
         
-        public EmployeeService(ILogger<EmployeeService> logger, IEmployeeRepository employeeRepository, IMapper mapper)
+    public EmployeeService(ILogger<EmployeeService> logger, IEmployeeRepository employeeRepository, IMapper mapper)
+    {
+        _employeeRepository = employeeRepository ?? throw new ArgumentNullException(nameof(employeeRepository));
+        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    public async Task<Employee> Create(Employee employee)
+    {
+        if (employee == null) return null;
+
+        await _employeeRepository.AddAsync(employee);
+
+        return employee;
+    }
+
+    public async Task<Employee> GetById(Guid id)
+    {
+        if(id != Guid.Empty)
         {
-            _employeeRepository = employeeRepository ?? throw new ArgumentNullException(nameof(employeeRepository));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            return await _employeeRepository.GetById(id);
         }
 
-        public async Task<Employee> Create(Employee employee)
-        {
-            if (employee == null) return null;
+        return null;
+    }
 
-            await _employeeRepository.AddAsync(employee);
+    public async Task<Employee> GetByIdWithDirectReports(Guid id)
+    {
+        return id != Guid.Empty 
+            ? await _employeeRepository.GetByIdWithDirectReports(id) : null;
+    }
 
-            return employee;
-        }
-
-        public async Task<Employee> GetById(Guid id)
-        {
-            if(id != Guid.Empty)
-            {
-                return await _employeeRepository.GetById(id);
-            }
-
-            return null;
-        }
-
-        public async Task<Employee> GetByIdWithDirectReports(Guid id)
-        {
-            return id != Guid.Empty 
-                ? await _employeeRepository.GetByIdWithDirectReports(id) : null;
-        }
-
-        public async Task<Employee> Update(Employee existingModel, Employee updateModel)
-        {
-            if (existingModel == null) return updateModel;
+    public async Task<Employee> Update(Employee existingModel, Employee updateModel)
+    {
+        if (existingModel == null) return updateModel;
             
-            _mapper.Map(updateModel, existingModel);
-            var result = await _employeeRepository.Update(existingModel);
+        _mapper.Map(updateModel, existingModel);
+        var result = await _employeeRepository.Update(existingModel);
 
-            return result;
-        }
+        return result;
     }
 }

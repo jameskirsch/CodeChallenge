@@ -103,11 +103,9 @@ public class EmployeeServiceTests
     public async Task Ensure_Compensation_Created_And_Persisted_InDatabase()
     {
         // Arrange
-        var employeeId = Guid.NewGuid();
-
         var employee = new Employee
         {
-            EmployeeId = employeeId,
+            EmployeeId = Guid.NewGuid(),
             FirstName = "James",
             LastName = "Kirsch",
             Department = "Engineering",
@@ -116,7 +114,7 @@ public class EmployeeServiceTests
 
         var compensation = new Compensation
         {
-            EmployeeId = employeeId,
+            EmployeeId = employee.EmployeeId,
             Salary = 2000.00M,
             EffectiveDate = DateTimeOffset.UtcNow
         };
@@ -138,7 +136,7 @@ public class EmployeeServiceTests
 
         // Assert
         var actualPersistedCompensation = await compensationContext.Compensations
-            .SingleOrDefaultAsync(c => c.EmployeeId == employeeId);
+            .SingleOrDefaultAsync(c => c.EmployeeId == employee.EmployeeId);
 
         Assert.IsNotNull(actualPersistedCompensation);
         Assert.AreEqual(compensation.Salary, actualPersistedCompensation.Salary);

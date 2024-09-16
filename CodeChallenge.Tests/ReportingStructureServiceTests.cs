@@ -11,374 +11,373 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
-namespace CodeChallenge.Tests.Integration
+namespace CodeChallenge.Tests.Integration;
+
+[TestClass]
+public class ReportingStructureServiceTests
 {
-    [TestClass]
-    public class ReportingStructureServiceTests
+    private static HttpClient _httpClient;
+    private static TestServer _testServer;
+
+    [ClassInitialize]
+    // Attribute ClassInitialize requires this signature
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter",
+        Justification = "<Pending>")]
+    public static void InitializeClass(TestContext context)
     {
-        private static HttpClient _httpClient;
-        private static TestServer _testServer;
-
-        [ClassInitialize]
-        // Attribute ClassInitialize requires this signature
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter",
-            Justification = "<Pending>")]
-        public static void InitializeClass(TestContext context)
-        {
-            _testServer = new TestServer();
-            _httpClient = _testServer.NewClient();
-        }
-
-        [ClassCleanup]
-        public static void CleanUpTest()
-        {
-            _httpClient.Dispose();
-            _testServer.Dispose();
-        }
-
-        [TestMethod]
-        public void GetReporting_Structure_By_EmployeeId_Returns_Ok()
-        {
-            // Arrange
-            const string employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
-
-            // Act
-            var getRequestTask = _httpClient.GetAsync($"api/reporting/{employeeId}");
-            var response = getRequestTask.Result;
-
-            // Assert
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-            var reportingStructure = response.DeserializeContent<ReportingStructure>();
-
-            Assert.IsNotNull(reportingStructure);
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-        }
-
-        [TestMethod]
-        public void Reporting_Structure_Service_Calculates_Report_Count_By_EmployeeId_Depth_Tree()
-        {
-            var employeeService = new Mock<IEmployeeService>().Object;
-            var reportingStructureService = new ReportingStructureService(new NullLogger<ReportingStructureService>(), employeeService);
-
-            // Arrange Tree Reporting Structure for Depth
-            var reportingStructure = new ReportingStructure { Employee = EmployeeReportDepthTestTree };
-
-            // Execute
-            var actual = reportingStructureService.GetReportCount(reportingStructure.Employee);
-
-            Assert.AreEqual(9, actual);
-        }
-
-        [TestMethod]
-        public void Reporting_Structure_Service_Calculates_Report_Count_By_EmployeeId_Wide_Tree()
-        {
-            var employeeService = new Mock<IEmployeeService>().Object;
-            var reportingStructureService =
-                new ReportingStructureService(new NullLogger<ReportingStructureService>(), employeeService);
-
-            // Arrange Tree Reporting Structure for Width
-            var reportingStructure = new ReportingStructure { Employee = EmployeeReportWidthTestTree };
-
-            var actual = reportingStructureService.GetReportCount(reportingStructure.Employee);
-            Assert.AreEqual(15, actual);
-        }
-
-        [TestMethod]
-        public async Task Get_Reporting_Structure_With_Total_Reports_By_Employee_Id_By_Depth()
-        {
-            var employeeId = new Guid("16a596ae-edd3-4847-99fe-c4518e82c86f");
-            var employeeService = new Mock<IEmployeeService>();
-            const int expected = 9;
-
-            employeeService.Setup(x => x.GetByIdWithDirectReports(It.IsAny<Guid>()))
-                .ReturnsAsync(EmployeeReportDepthTestTree);
-
-            var reportingStructureService =
-                new ReportingStructureService(new NullLogger<ReportingStructureService>(), employeeService.Object);
-
-            var result = await reportingStructureService.GetReportingStructureByEmployeeId(employeeId);
-            var actual = result.NumberOfReports;
-
-            Assert.IsNotNull(actual);
-            Assert.AreEqual(expected, actual);
-        }
-
-        [TestMethod]
-        public async Task Get_Reporting_Structure_With_Total_Reports_By_Employee_Id_By_Width()
-        {
-            var employeeId = new Guid("16a596ae-edd3-4847-99fe-c4518e82c86f");
-            var employeeService = new Mock<IEmployeeService>();
-            const int expected = 15;
-
-            employeeService.Setup(x => x.GetByIdWithDirectReports(It.IsAny<Guid>()))
-                .ReturnsAsync(EmployeeReportWidthTestTree);
-
-            var reportingStructureService =
-                new ReportingStructureService(new NullLogger<ReportingStructureService>(), employeeService.Object);
-
-            var result = await reportingStructureService.GetReportingStructureByEmployeeId(employeeId);
-            var actual = result.NumberOfReports;
-
-            Assert.IsNotNull(actual);
-            Assert.AreEqual(expected, actual);
-        }
-
-        [TestMethod]
-        public async Task Get_Reporting_Structure_By_EmployeeId_Returns_Full_Details()
-        {
-            // Arrange
-            const string employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
-            const int expectedNumberOfReports = 4;
-
-            // Execute
-            var response = await _httpClient.GetAsync($"api/reporting/{employeeId}");
-
-            // Assert
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-            var reportingStructure = response.DeserializeContent<ReportingStructure>();
-
-            Assert.IsNotNull(reportingStructure);
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-            Assert.IsNotNull(reportingStructure.NumberOfReports);
-            Assert.AreEqual(expectedNumberOfReports, reportingStructure.NumberOfReports);
-            Assert.IsNotNull(reportingStructure.Employee);
-            Assert.IsNotNull(reportingStructure.Employee.DirectReports);
-        }
-
-        [TestMethod]
-        public async Task Request_Reporting_Structure_With_Full_Reports_Starting_At_Second_Depth_Level()
-        {
-            const int expectedNumberOfReportsCount = 2;
-            var employee = new Employee { EmployeeId = new Guid("03aa1462-ffa9-4978-901b-7c001562cf6f") };
-
-            var response = await _httpClient.GetAsync($"api/reporting/{employee.EmployeeId}");
-            var actualResult = response.DeserializeContent<ReportingStructure>();
-
-            Assert.IsNotNull(response);
-            Assert.IsNotNull(actualResult);
-            Assert.AreEqual(expectedNumberOfReportsCount, actualResult.NumberOfReports);
-            Assert.IsNotNull(actualResult.Employee);
-        }
-
-        [TestMethod]
-        public async Task Request_Reporting_Structure_With_Full_Reports_Returns_No_Reports_If_No_Direct_Reports()
-        {
-            const int expectedNumberOfReportsCount = 0;
-            var employee = new Employee { EmployeeId = new Guid("62c1084e-6e34-4630-93fd-9153afb65309") };
-
-            var response = await _httpClient.GetAsync($"api/reporting/{employee.EmployeeId}");
-            var actualResult = response.DeserializeContent<ReportingStructure>();
-
-            Assert.IsNotNull(response);
-            Assert.IsNotNull(actualResult);
-            Assert.AreEqual(expectedNumberOfReportsCount, actualResult.NumberOfReports);
-            Assert.IsNotNull(actualResult.Employee);
-        }
-
-        #region TestData
-
-        private static readonly Employee EmployeeReportDepthTestTree = new Employee
-        {
-            EmployeeId = Guid.NewGuid(),
-            FirstName = "James",
-            LastName = "Kirsch",
-
-            DirectReports = new List<Employee>
-            {
-                new Employee
-                {
-                    EmployeeId = Guid.NewGuid(),
-                    FirstName = "John",
-                    LastName = "Doe",
-
-                    DirectReports = new List<Employee>
-                    {
-                        new Employee
-                        {
-                            EmployeeId = Guid.NewGuid(),
-                            FirstName = "James",
-                            LastName = "Doe",
-
-                            DirectReports = new List<Employee>
-                            {
-                                new Employee
-                                {
-                                    EmployeeId = Guid.NewGuid(),
-                                    FirstName = "Sally",
-                                    LastName = "Doe",
-                                }
-                            }
-                        }
-                    }
-                },
-                new Employee
-                {
-                    EmployeeId = Guid.NewGuid(),
-                    FirstName = "Jane",
-                    LastName = "Doe",
-
-                    DirectReports = new List<Employee>
-                    {
-                        new Employee
-                        {
-                            EmployeeId = Guid.NewGuid(),
-                            FirstName = "Sam",
-                            LastName = "Doe",
-
-                            DirectReports = new List<Employee>
-                            {
-                                new Employee
-                                {
-                                    EmployeeId = Guid.NewGuid(),
-                                    FirstName = "Tom",
-                                    LastName = "Doe",
-                                }
-                            }
-                        }
-                    }
-                },
-                new Employee
-                {
-                    EmployeeId = Guid.NewGuid(),
-                    FirstName = "Jim",
-                    LastName = "Doe",
-
-                    DirectReports = new List<Employee>
-                    {
-                        new Employee
-                        {
-                            EmployeeId = Guid.NewGuid(),
-                            FirstName = "Elizabeth",
-                            LastName = "Doe",
-
-                            DirectReports = new List<Employee>
-                            {
-                                new Employee
-                                {
-                                    EmployeeId = Guid.NewGuid(),
-                                    FirstName = "Martin",
-                                    LastName = "Doe",
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        };
-
-        private static readonly Employee EmployeeReportWidthTestTree = new Employee
-        {
-            EmployeeId = Guid.NewGuid(),
-            FirstName = "James",
-            LastName = "Kirsch",
-
-            DirectReports = new List<Employee>
-            {
-                new Employee
-                {
-                    EmployeeId = Guid.NewGuid(),
-                    FirstName = "John",
-                    LastName = "Doe",
-
-                    DirectReports = new List<Employee>
-                    {
-                        new Employee
-                        {
-                            EmployeeId = Guid.NewGuid(),
-                            FirstName = "James",
-                            LastName = "Doe",
-                        },
-                        new Employee
-                        {
-                            EmployeeId = Guid.NewGuid(),
-                            FirstName = "James",
-                            LastName = "Doe",
-                        },
-                        new Employee
-                        {
-                            EmployeeId = Guid.NewGuid(),
-                            FirstName = "James",
-                            LastName = "Doe",
-                        },
-                        new Employee
-                        {
-                            EmployeeId = Guid.NewGuid(),
-                            FirstName = "James",
-                            LastName = "Doe",
-                        }
-                    }
-                },
-                new Employee
-                {
-                    EmployeeId = Guid.NewGuid(),
-                    FirstName = "Jane",
-                    LastName = "Doe",
-
-                    DirectReports = new List<Employee>
-                    {
-                        new Employee
-                        {
-                            EmployeeId = Guid.NewGuid(),
-                            FirstName = "Sam",
-                            LastName = "Doe",
-                        },
-                        new Employee
-                        {
-                            EmployeeId = Guid.NewGuid(),
-                            FirstName = "James",
-                            LastName = "Doe",
-                        },
-                        new Employee
-                        {
-                            EmployeeId = Guid.NewGuid(),
-                            FirstName = "James",
-                            LastName = "Doe",
-                        },
-                        new Employee
-                        {
-                            EmployeeId = Guid.NewGuid(),
-                            FirstName = "James",
-                            LastName = "Doe",
-                        }
-                    }
-                },
-                new Employee
-                {
-                    EmployeeId = Guid.NewGuid(),
-                    FirstName = "Jim",
-                    LastName = "Doe",
-
-                    DirectReports = new List<Employee>
-                    {
-                        new Employee
-                        {
-                            EmployeeId = Guid.NewGuid(),
-                            FirstName = "Elizabeth",
-                            LastName = "Doe",
-                        },
-                        new Employee
-                        {
-                            EmployeeId = Guid.NewGuid(),
-                            FirstName = "James",
-                            LastName = "Doe",
-                        },
-                        new Employee
-                        {
-                            EmployeeId = Guid.NewGuid(),
-                            FirstName = "James",
-                            LastName = "Doe",
-                        },
-                        new Employee
-                        {
-                            EmployeeId = Guid.NewGuid(),
-                            FirstName = "James",
-                            LastName = "Doe",
-                        }
-                    }
-                }
-            }
-        };
-
-        #endregion
+        _testServer = new TestServer();
+        _httpClient = _testServer.NewClient();
     }
+
+    [ClassCleanup]
+    public static void CleanUpTest()
+    {
+        _httpClient.Dispose();
+        _testServer.Dispose();
+    }
+
+    [TestMethod]
+    public void GetReporting_Structure_By_EmployeeId_Returns_Ok()
+    {
+        // Arrange
+        const string employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
+
+        // Act
+        var getRequestTask = _httpClient.GetAsync($"api/reporting/{employeeId}");
+        var response = getRequestTask.Result;
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        var reportingStructure = response.DeserializeContent<ReportingStructure>();
+
+        Assert.IsNotNull(reportingStructure);
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [TestMethod]
+    public void Reporting_Structure_Service_Calculates_Report_Count_By_EmployeeId_Depth_Tree()
+    {
+        var employeeService = new Mock<IEmployeeService>().Object;
+        var reportingStructureService = new ReportingStructureService(new NullLogger<ReportingStructureService>(), employeeService);
+
+        // Arrange Tree Reporting Structure for Depth
+        var reportingStructure = new ReportingStructure { Employee = EmployeeReportDepthTestTree };
+
+        // Execute
+        var actual = reportingStructureService.GetReportCount(reportingStructure.Employee);
+
+        Assert.AreEqual(9, actual);
+    }
+
+    [TestMethod]
+    public void Reporting_Structure_Service_Calculates_Report_Count_By_EmployeeId_Wide_Tree()
+    {
+        var employeeService = new Mock<IEmployeeService>().Object;
+        var reportingStructureService =
+            new ReportingStructureService(new NullLogger<ReportingStructureService>(), employeeService);
+
+        // Arrange Tree Reporting Structure for Width
+        var reportingStructure = new ReportingStructure { Employee = EmployeeReportWidthTestTree };
+
+        var actual = reportingStructureService.GetReportCount(reportingStructure.Employee);
+        Assert.AreEqual(15, actual);
+    }
+
+    [TestMethod]
+    public async Task Get_Reporting_Structure_With_Total_Reports_By_Employee_Id_By_Depth()
+    {
+        var employeeId = new Guid("16a596ae-edd3-4847-99fe-c4518e82c86f");
+        var employeeService = new Mock<IEmployeeService>();
+        const int expected = 9;
+
+        employeeService.Setup(x => x.GetByIdWithDirectReports(It.IsAny<Guid>()))
+            .ReturnsAsync(EmployeeReportDepthTestTree);
+
+        var reportingStructureService =
+            new ReportingStructureService(new NullLogger<ReportingStructureService>(), employeeService.Object);
+
+        var result = await reportingStructureService.GetReportingStructureByEmployeeId(employeeId);
+        var actual = result.NumberOfReports;
+
+        Assert.IsNotNull(actual);
+        Assert.AreEqual(expected, actual);
+    }
+
+    [TestMethod]
+    public async Task Get_Reporting_Structure_With_Total_Reports_By_Employee_Id_By_Width()
+    {
+        var employeeId = new Guid("16a596ae-edd3-4847-99fe-c4518e82c86f");
+        var employeeService = new Mock<IEmployeeService>();
+        const int expected = 15;
+
+        employeeService.Setup(x => x.GetByIdWithDirectReports(It.IsAny<Guid>()))
+            .ReturnsAsync(EmployeeReportWidthTestTree);
+
+        var reportingStructureService =
+            new ReportingStructureService(new NullLogger<ReportingStructureService>(), employeeService.Object);
+
+        var result = await reportingStructureService.GetReportingStructureByEmployeeId(employeeId);
+        var actual = result.NumberOfReports;
+
+        Assert.IsNotNull(actual);
+        Assert.AreEqual(expected, actual);
+    }
+
+    [TestMethod]
+    public async Task Get_Reporting_Structure_By_EmployeeId_Returns_Full_Details()
+    {
+        // Arrange
+        const string employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
+        const int expectedNumberOfReports = 4;
+
+        // Execute
+        var response = await _httpClient.GetAsync($"api/reporting/{employeeId}");
+
+        // Assert
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        var reportingStructure = response.DeserializeContent<ReportingStructure>();
+
+        Assert.IsNotNull(reportingStructure);
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        Assert.IsNotNull(reportingStructure.NumberOfReports);
+        Assert.AreEqual(expectedNumberOfReports, reportingStructure.NumberOfReports);
+        Assert.IsNotNull(reportingStructure.Employee);
+        Assert.IsNotNull(reportingStructure.Employee.DirectReports);
+    }
+
+    [TestMethod]
+    public async Task Request_Reporting_Structure_With_Full_Reports_Starting_At_Second_Depth_Level()
+    {
+        const int expectedNumberOfReportsCount = 2;
+        var employee = new Employee { EmployeeId = new Guid("03aa1462-ffa9-4978-901b-7c001562cf6f") };
+
+        var response = await _httpClient.GetAsync($"api/reporting/{employee.EmployeeId}");
+        var actualResult = response.DeserializeContent<ReportingStructure>();
+
+        Assert.IsNotNull(response);
+        Assert.IsNotNull(actualResult);
+        Assert.AreEqual(expectedNumberOfReportsCount, actualResult.NumberOfReports);
+        Assert.IsNotNull(actualResult.Employee);
+    }
+
+    [TestMethod]
+    public async Task Request_Reporting_Structure_With_Full_Reports_Returns_No_Reports_If_No_Direct_Reports()
+    {
+        const int expectedNumberOfReportsCount = 0;
+        var employee = new Employee { EmployeeId = new Guid("62c1084e-6e34-4630-93fd-9153afb65309") };
+
+        var response = await _httpClient.GetAsync($"api/reporting/{employee.EmployeeId}");
+        var actualResult = response.DeserializeContent<ReportingStructure>();
+
+        Assert.IsNotNull(response);
+        Assert.IsNotNull(actualResult);
+        Assert.AreEqual(expectedNumberOfReportsCount, actualResult.NumberOfReports);
+        Assert.IsNotNull(actualResult.Employee);
+    }
+
+    #region TestData
+
+    private static readonly Employee EmployeeReportDepthTestTree = new Employee
+    {
+        EmployeeId = Guid.NewGuid(),
+        FirstName = "James",
+        LastName = "Kirsch",
+
+        DirectReports = new List<Employee>
+        {
+            new Employee
+            {
+                EmployeeId = Guid.NewGuid(),
+                FirstName = "John",
+                LastName = "Doe",
+
+                DirectReports = new List<Employee>
+                {
+                    new Employee
+                    {
+                        EmployeeId = Guid.NewGuid(),
+                        FirstName = "James",
+                        LastName = "Doe",
+
+                        DirectReports = new List<Employee>
+                        {
+                            new Employee
+                            {
+                                EmployeeId = Guid.NewGuid(),
+                                FirstName = "Sally",
+                                LastName = "Doe",
+                            }
+                        }
+                    }
+                }
+            },
+            new Employee
+            {
+                EmployeeId = Guid.NewGuid(),
+                FirstName = "Jane",
+                LastName = "Doe",
+
+                DirectReports = new List<Employee>
+                {
+                    new Employee
+                    {
+                        EmployeeId = Guid.NewGuid(),
+                        FirstName = "Sam",
+                        LastName = "Doe",
+
+                        DirectReports = new List<Employee>
+                        {
+                            new Employee
+                            {
+                                EmployeeId = Guid.NewGuid(),
+                                FirstName = "Tom",
+                                LastName = "Doe",
+                            }
+                        }
+                    }
+                }
+            },
+            new Employee
+            {
+                EmployeeId = Guid.NewGuid(),
+                FirstName = "Jim",
+                LastName = "Doe",
+
+                DirectReports = new List<Employee>
+                {
+                    new Employee
+                    {
+                        EmployeeId = Guid.NewGuid(),
+                        FirstName = "Elizabeth",
+                        LastName = "Doe",
+
+                        DirectReports = new List<Employee>
+                        {
+                            new Employee
+                            {
+                                EmployeeId = Guid.NewGuid(),
+                                FirstName = "Martin",
+                                LastName = "Doe",
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    private static readonly Employee EmployeeReportWidthTestTree = new Employee
+    {
+        EmployeeId = Guid.NewGuid(),
+        FirstName = "James",
+        LastName = "Kirsch",
+
+        DirectReports = new List<Employee>
+        {
+            new Employee
+            {
+                EmployeeId = Guid.NewGuid(),
+                FirstName = "John",
+                LastName = "Doe",
+
+                DirectReports = new List<Employee>
+                {
+                    new Employee
+                    {
+                        EmployeeId = Guid.NewGuid(),
+                        FirstName = "James",
+                        LastName = "Doe",
+                    },
+                    new Employee
+                    {
+                        EmployeeId = Guid.NewGuid(),
+                        FirstName = "James",
+                        LastName = "Doe",
+                    },
+                    new Employee
+                    {
+                        EmployeeId = Guid.NewGuid(),
+                        FirstName = "James",
+                        LastName = "Doe",
+                    },
+                    new Employee
+                    {
+                        EmployeeId = Guid.NewGuid(),
+                        FirstName = "James",
+                        LastName = "Doe",
+                    }
+                }
+            },
+            new Employee
+            {
+                EmployeeId = Guid.NewGuid(),
+                FirstName = "Jane",
+                LastName = "Doe",
+
+                DirectReports = new List<Employee>
+                {
+                    new Employee
+                    {
+                        EmployeeId = Guid.NewGuid(),
+                        FirstName = "Sam",
+                        LastName = "Doe",
+                    },
+                    new Employee
+                    {
+                        EmployeeId = Guid.NewGuid(),
+                        FirstName = "James",
+                        LastName = "Doe",
+                    },
+                    new Employee
+                    {
+                        EmployeeId = Guid.NewGuid(),
+                        FirstName = "James",
+                        LastName = "Doe",
+                    },
+                    new Employee
+                    {
+                        EmployeeId = Guid.NewGuid(),
+                        FirstName = "James",
+                        LastName = "Doe",
+                    }
+                }
+            },
+            new Employee
+            {
+                EmployeeId = Guid.NewGuid(),
+                FirstName = "Jim",
+                LastName = "Doe",
+
+                DirectReports = new List<Employee>
+                {
+                    new Employee
+                    {
+                        EmployeeId = Guid.NewGuid(),
+                        FirstName = "Elizabeth",
+                        LastName = "Doe",
+                    },
+                    new Employee
+                    {
+                        EmployeeId = Guid.NewGuid(),
+                        FirstName = "James",
+                        LastName = "Doe",
+                    },
+                    new Employee
+                    {
+                        EmployeeId = Guid.NewGuid(),
+                        FirstName = "James",
+                        LastName = "Doe",
+                    },
+                    new Employee
+                    {
+                        EmployeeId = Guid.NewGuid(),
+                        FirstName = "James",
+                        LastName = "Doe",
+                    }
+                }
+            }
+        }
+    };
+
+    #endregion
 }

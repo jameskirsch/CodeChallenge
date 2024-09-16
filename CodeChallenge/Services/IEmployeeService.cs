@@ -2,13 +2,12 @@
 using CodeChallenge.Models;
 using System.Threading.Tasks;
 
-namespace CodeChallenge.Services
+namespace CodeChallenge.Services;
+
+public interface IEmployeeService
 {
-    public interface IEmployeeService
-    {
-        Task<Employee> GetById(Guid id);
-        Task<Employee> GetByIdWithDirectReports(Guid id);
-        Task<Employee> Create(Employee employee);
-        Task<Employee> Update(Employee existingModel, Employee updateModel);
-    }
+    Task<Employee> GetById(Guid id);
+    Task<Employee> GetByIdWithDirectReports(Guid id);
+    Task<Employee> Create(Employee employee);
+    Task<Employee> Update(Employee existingModel, Employee updateModel);
 }

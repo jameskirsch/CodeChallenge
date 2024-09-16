@@ -2,11 +2,10 @@
 using System;
 using System.Threading.Tasks;
 
-namespace CodeChallenge.Services
+namespace CodeChallenge.Services;
+
+public interface ICompensationService
 {
-    public interface ICompensationService
-    {
-        Task<Compensation> GetCompensationByEmployeeId(Guid id);
-        Task<Compensation> Create(Compensation compensation);
-    }
+    Task<Compensation> GetCompensationByEmployeeId(Guid id);
+    Task<Compensation> Create(Compensation compensation);
 }

@@ -2,10 +2,9 @@
 using System.Threading.Tasks;
 using CodeChallenge.Models;
 
-namespace CodeChallenge.Services
+namespace CodeChallenge.Services;
+
+public interface IReportingStructureService
 {
-    public interface IReportingStructureService
-    {
-        public Task<ReportingStructure> GetReportingStructureByEmployeeId(Guid id);
-    }
+    public Task<ReportingStructure> GetReportingStructureByEmployeeId(Guid id);
 }

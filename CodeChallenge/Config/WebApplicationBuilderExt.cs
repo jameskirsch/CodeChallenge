@@ -6,29 +6,28 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace CodeChallenge.Config
+namespace CodeChallenge.Config;
+
+public static class WebApplicationBuilderExt
 {
-    public static class WebApplicationBuilderExt
+    private const string DbName = "EmployeeDB";
+
+    public static void UseEmployeeDb(this WebApplicationBuilder builder)
     {
-        private const string DbName = "EmployeeDB";
+        var env = builder.Environment;
 
-        public static void UseEmployeeDb(this WebApplicationBuilder builder)
+        if (env.IsDevelopment())
         {
-            var env = builder.Environment;
-
-            if (env.IsDevelopment())
-            {
-                builder.Services.AddDbContext<EmployeeContext>(options =>
-                    options.UseInMemoryDatabase(DbName));
-                builder.Services.AddDbContext<CompensationContext>(options => options.UseInMemoryDatabase(DbName));
-            }
-            else
-            {
-                builder.Services.AddDbContext<EmployeeContext>(options =>
-                    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-                builder.Services.AddDbContext<CompensationContext>(options =>
-                    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-            }
+            builder.Services.AddDbContext<EmployeeContext>(options =>
+                options.UseInMemoryDatabase(DbName));
+            builder.Services.AddDbContext<CompensationContext>(options => options.UseInMemoryDatabase(DbName));
+        }
+        else
+        {
+            builder.Services.AddDbContext<EmployeeContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddDbContext<CompensationContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
         }
     }
 }

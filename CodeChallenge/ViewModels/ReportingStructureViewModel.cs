@@ -1,8 +1,7 @@
-﻿namespace CodeChallenge.ViewModels
+﻿namespace CodeChallenge.ViewModels;
+
+public class ReportingStructureViewModel
 {
-    public class ReportingStructureViewModel
-    {
-        public EmployeeViewModel Employee { get; set; }
-        public int? NumberOfReports { get; set; }
-    }
+    public EmployeeViewModel Employee { get; set; }
+    public int? NumberOfReports { get; set; }
 }

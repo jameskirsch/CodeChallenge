@@ -1,28 +1,23 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using Newtonsoft.Json;
 
-namespace CodeChallenge.Tests.Integration.Helpers
+namespace CodeChallenge.Tests.Integration.Helpers;
+
+public class JsonSerialization
 {
-    public class JsonSerialization
+    private readonly JsonSerializer _serializer = JsonSerializer.CreateDefault();
+
+    public string ToJson<T>(T obj)
     {
-        private JsonSerializer serializer = JsonSerializer.CreateDefault();
+        var json = string.Empty;
 
-        public String ToJson<T>(T obj)
-        {
-            String json = null;
+        if (obj == null) return json;
 
-            if (obj != null)
-            {
-                using (var sw = new StringWriter())
-                using (var jtw = new JsonTextWriter(sw))
-                {
-                    serializer.Serialize(jtw, obj);
-                    json = sw.ToString();
-                }
-            }
+        using var sw = new StringWriter();
+        using var jtw = new JsonTextWriter(sw);
+        _serializer.Serialize(jtw, obj);
+        json = sw.ToString();
 
-            return json;
-        }
+        return json;
     }
 }
