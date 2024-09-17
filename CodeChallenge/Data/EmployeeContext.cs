@@ -11,18 +11,24 @@ public class EmployeeContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Define Employee entity with a self-referencing relationship for DirectReports
         modelBuilder.Entity<Employee>()
             .HasKey(e => e.EmployeeId);
 
         // Configure self-referencing relationship: Employee has many DirectReports and one Parent
         modelBuilder.Entity<Employee>()
             .HasMany(e => e.DirectReports)
-            .WithOne()  // No navigation property for Parent (handled only through ParentId)
-            .HasForeignKey(e => e.ParentId)  // Foreign key is explicitly set to ParentId (optional)
-            .OnDelete(DeleteBehavior.Restrict);  // Prevent cascading deletes
+            .WithOne(p => p.Parent)
+            .HasForeignKey(e => e.ParentId)
+            .OnDelete(DeleteBehavior.Restrict); // Prevent cascading deletes
 
-        // Define ReportingStructure entity and relationship with Employee
+        modelBuilder.Entity<Employee>(entity =>
+        {
+            entity.Property(e => e.FirstName).HasMaxLength(100); 
+            entity.Property(e => e.LastName).HasMaxLength(100); 
+            entity.Property(e => e.Position).HasMaxLength(100);
+            entity.Property(e => e.Department).HasMaxLength(100); 
+        });
+
         modelBuilder.Entity<ReportingStructure>()
             .HasOne(rs => rs.Employee)
             .WithMany()

@@ -29,8 +29,7 @@ public class CompensationRepository : ICompensationRepository
             throw new InvalidOperationException("EmployeeId is required.");
         }
 
-        var employee = await _employeeContext.Employees.FindAsync(compensation.EmployeeId);
-        if (employee == null)
+        if (await _employeeContext.Employees.FindAsync(compensation.EmployeeId) == null)
         {
             throw new InvalidOperationException("Employee does not exist.");
         }

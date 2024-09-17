@@ -208,7 +208,7 @@ public class ReportingStructureServiceTests
 
     #region TestData
 
-    private static readonly Employee EmployeeReportDepthTestTree = new Employee
+    private static readonly Employee EmployeeReportDepthTestTree = new()
     {
         EmployeeId = Guid.NewGuid(),
         FirstName = "James",
@@ -216,7 +216,7 @@ public class ReportingStructureServiceTests
 
         DirectReports = new List<Employee>
         {
-            new Employee
+            new()
             {
                 EmployeeId = Guid.NewGuid(),
                 FirstName = "John",
@@ -224,7 +224,7 @@ public class ReportingStructureServiceTests
 
                 DirectReports = new List<Employee>
                 {
-                    new Employee
+                    new()
                     {
                         EmployeeId = Guid.NewGuid(),
                         FirstName = "James",
@@ -232,7 +232,7 @@ public class ReportingStructureServiceTests
 
                         DirectReports = new List<Employee>
                         {
-                            new Employee
+                            new()
                             {
                                 EmployeeId = Guid.NewGuid(),
                                 FirstName = "Sally",
@@ -242,7 +242,7 @@ public class ReportingStructureServiceTests
                     }
                 }
             },
-            new Employee
+            new()
             {
                 EmployeeId = Guid.NewGuid(),
                 FirstName = "Jane",
@@ -250,7 +250,7 @@ public class ReportingStructureServiceTests
 
                 DirectReports = new List<Employee>
                 {
-                    new Employee
+                    new()
                     {
                         EmployeeId = Guid.NewGuid(),
                         FirstName = "Sam",
@@ -258,7 +258,7 @@ public class ReportingStructureServiceTests
 
                         DirectReports = new List<Employee>
                         {
-                            new Employee
+                            new()
                             {
                                 EmployeeId = Guid.NewGuid(),
                                 FirstName = "Tom",
@@ -268,7 +268,7 @@ public class ReportingStructureServiceTests
                     }
                 }
             },
-            new Employee
+            new()
             {
                 EmployeeId = Guid.NewGuid(),
                 FirstName = "Jim",
@@ -276,7 +276,7 @@ public class ReportingStructureServiceTests
 
                 DirectReports = new List<Employee>
                 {
-                    new Employee
+                    new()
                     {
                         EmployeeId = Guid.NewGuid(),
                         FirstName = "Elizabeth",
@@ -284,7 +284,7 @@ public class ReportingStructureServiceTests
 
                         DirectReports = new List<Employee>
                         {
-                            new Employee
+                            new()
                             {
                                 EmployeeId = Guid.NewGuid(),
                                 FirstName = "Martin",
@@ -297,7 +297,7 @@ public class ReportingStructureServiceTests
         }
     };
 
-    private static readonly Employee EmployeeReportWidthTestTree = new Employee
+    private static readonly Employee EmployeeReportWidthTestTree = new()
     {
         EmployeeId = Guid.NewGuid(),
         FirstName = "James",
@@ -305,7 +305,7 @@ public class ReportingStructureServiceTests
 
         DirectReports = new List<Employee>
         {
-            new Employee
+            new()
             {
                 EmployeeId = Guid.NewGuid(),
                 FirstName = "John",
@@ -313,25 +313,25 @@ public class ReportingStructureServiceTests
 
                 DirectReports = new List<Employee>
                 {
-                    new Employee
+                    new()
                     {
                         EmployeeId = Guid.NewGuid(),
                         FirstName = "James",
                         LastName = "Doe",
                     },
-                    new Employee
+                    new()
                     {
                         EmployeeId = Guid.NewGuid(),
                         FirstName = "James",
                         LastName = "Doe",
                     },
-                    new Employee
+                    new()
                     {
                         EmployeeId = Guid.NewGuid(),
                         FirstName = "James",
                         LastName = "Doe",
                     },
-                    new Employee
+                    new()
                     {
                         EmployeeId = Guid.NewGuid(),
                         FirstName = "James",
@@ -339,7 +339,7 @@ public class ReportingStructureServiceTests
                     }
                 }
             },
-            new Employee
+            new()
             {
                 EmployeeId = Guid.NewGuid(),
                 FirstName = "Jane",
@@ -347,25 +347,25 @@ public class ReportingStructureServiceTests
 
                 DirectReports = new List<Employee>
                 {
-                    new Employee
+                    new()
                     {
                         EmployeeId = Guid.NewGuid(),
                         FirstName = "Sam",
                         LastName = "Doe",
                     },
-                    new Employee
+                    new()
                     {
                         EmployeeId = Guid.NewGuid(),
                         FirstName = "James",
                         LastName = "Doe",
                     },
-                    new Employee
+                    new()
                     {
                         EmployeeId = Guid.NewGuid(),
                         FirstName = "James",
                         LastName = "Doe",
                     },
-                    new Employee
+                    new()
                     {
                         EmployeeId = Guid.NewGuid(),
                         FirstName = "James",
@@ -373,7 +373,7 @@ public class ReportingStructureServiceTests
                     }
                 }
             },
-            new Employee
+            new()
             {
                 EmployeeId = Guid.NewGuid(),
                 FirstName = "Jim",
@@ -381,25 +381,25 @@ public class ReportingStructureServiceTests
 
                 DirectReports = new List<Employee>
                 {
-                    new Employee
+                    new()
                     {
                         EmployeeId = Guid.NewGuid(),
                         FirstName = "Elizabeth",
                         LastName = "Doe",
                     },
-                    new Employee
+                    new()
                     {
                         EmployeeId = Guid.NewGuid(),
                         FirstName = "James",
                         LastName = "Doe",
                     },
-                    new Employee
+                    new()
                     {
                         EmployeeId = Guid.NewGuid(),
                         FirstName = "James",
                         LastName = "Doe",
                     },
-                    new Employee
+                    new()
                     {
                         EmployeeId = Guid.NewGuid(),
                         FirstName = "James",
