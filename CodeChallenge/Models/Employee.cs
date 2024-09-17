@@ -13,8 +13,12 @@ public class Employee
     public string? Position { get; set; }
     public string? Department { get; set; }
 
-    // Nullable foreign key to reference the parent
-    public Guid? ParentId { get; set; }  // Parent can be null if the employee is the root
+    // Foreign key for parent, null if this is the root employee
+    public Guid? ParentId { get; set; }
 
+    // Navigation property to the parent employee
+    public virtual Employee? Parent { get; set; }
+
+    // Navigation property for direct reports (Lazy Loading enabled)
     public virtual List<Employee>? DirectReports { get; set; }
 }
