@@ -1,28 +1,40 @@
-﻿using System;
-using System.Net.Http;
-using System.Threading.Tasks;
+﻿using System.Linq;
+using CodeChallenge.Data;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CodeChallenge.Tests.Integration.Helpers;
 
-public class TestServer : IDisposable, IAsyncDisposable
+public class TestServer : WebApplicationFactory<Program>
 {
-    private readonly WebApplicationFactory<Program> _applicationFactory = new();
+    private string DbName { get; }
 
-    public HttpClient NewClient()
+    public TestServer(string dbName)
     {
-        return _applicationFactory.CreateClient();
+        DbName = dbName;
     }
 
-    public async ValueTask DisposeAsync()
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        await ((IAsyncDisposable)_applicationFactory).DisposeAsync();
-        GC.SuppressFinalize(this);
-    }
+        builder.ConfigureServices(services =>
+        {
+            // Remove the application's DbContext registration.
+            var employeeContextDescriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(DbContextOptions<EmployeeContext>));
 
-    public void Dispose()
-    {
-        ((IDisposable)_applicationFactory).Dispose();
-        GC.SuppressFinalize(this);
+            if (employeeContextDescriptor != null)
+            {
+                services.Remove(employeeContextDescriptor);
+            }
+
+            // Add a new DbContext registrations for the in-memory database.
+            // TODO: Currently this only really benefits heavy interactions with the EmployeeContext, eventually would need to add in other contexts for true isolation.
+            services.AddDbContext<EmployeeContext>(options =>
+            {
+                options.UseInMemoryDatabase(DbName);
+            });
+        });
     }
 }

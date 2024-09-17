@@ -14,32 +14,29 @@ namespace CodeChallenge.Tests.Integration;
 public class EmployeeControllerTests
 {
     private static HttpClient _httpClient;
-    private static TestServer _testServer;
+    private static TestServer _customWebApplicationFactory;
 
     [ClassInitialize]
     // Attribute ClassInitialize requires this signature
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
     public static void SetupTest(TestContext context)
     {
-        _testServer = new TestServer();
-        _httpClient = _testServer.NewClient();
+        _customWebApplicationFactory = new TestServer("EmployeeContextDb"); 
+        _httpClient = _customWebApplicationFactory.CreateClient();
     }
 
     [ClassCleanup]
     public static async Task ClassCleanUp()
     {
-        await _testServer.DisposeAsync();
-        _httpClient = _testServer.NewClient();
+        await _customWebApplicationFactory.DisposeAsync();
+        _httpClient.Dispose();
     }
 
     [TestMethod]
     public async Task CreateEmployee_Returns_Created()
     {
-        await using var testServer = new TestServer();
-        using var httpClient = testServer.NewClient();
-
         // Arrange
-        var employee = new Employee()
+        var employee = new Employee
         {
             Department = "Complaints",
             FirstName = "Debbie",
@@ -50,9 +47,8 @@ public class EmployeeControllerTests
         var requestContent = new JsonSerialization().ToJson(employee);
 
         // Execute
-        var postRequestTask = httpClient.PostAsync("api/employee",
+        var response = await _httpClient.PostAsync("api/employee",
             new StringContent(requestContent, Encoding.UTF8, "application/json"));
-        var response = postRequestTask.Result;
 
         // Assert
         Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);

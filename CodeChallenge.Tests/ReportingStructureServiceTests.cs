@@ -21,22 +21,22 @@ namespace CodeChallenge.Tests.Integration;
 public class ReportingStructureServiceTests
 {
     private static HttpClient _httpClient;
-    private static TestServer _testServer;
+    private static TestServer _customWebApplicationFactory;
 
     [ClassInitialize]
     // Attribute ClassInitialize requires this signature
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
     public static void SetupTest(TestContext context)
     {
-        _testServer = new TestServer();
-        _httpClient = _testServer.NewClient();
+        _customWebApplicationFactory = new TestServer("ReportingStructureServiceContextDb");
+        _httpClient = _customWebApplicationFactory.CreateClient();
     }
 
     [ClassCleanup]
     public static async Task ClassCleanUp()
     {
-        await _testServer.DisposeAsync();
-        _httpClient = _testServer.NewClient();
+        await _customWebApplicationFactory.DisposeAsync();
+        _httpClient.Dispose();
     }
 
     [TestMethod]
@@ -156,9 +156,6 @@ public class ReportingStructureServiceTests
     [TestMethod]
     public async Task Get_Reporting_Structure_By_EmployeeId_Returns_Full_Details()
     {
-        Assert.Inconclusive("Test is inconclusive due to shared database state between tests I need to fix still. " +
-                            "Run the test individually to observe the correct behavior.");
-
         // Arrange
         const string employeeId = "16a596ae-edd3-4847-99fe-c4518e82c86f";
         const int expectedNumberOfReports = 4;
