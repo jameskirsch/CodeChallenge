@@ -4,6 +4,8 @@ using CodeChallenge.Models;
 using Microsoft.Extensions.Logging;
 using CodeChallenge.Data;
 using Microsoft.EntityFrameworkCore;
+using CodeChallenge.Repositories.Interfaces;
+using System.Collections.Generic;
 
 namespace CodeChallenge.Repositories;
 
@@ -25,22 +27,16 @@ public class EmployeeRepository : IEmployeeRepository
         if (employee == null) return null;
 
         await _employeeContext.Employees.AddAsync(employee);
-        await _employeeContext.SaveChangesAsync();
 
         return employee;
     }
 
-    public async Task<Employee> Update(Employee employee)
+    public void Update(Employee employee)
     {
-        if (employee == null || employee.EmployeeId == Guid.Empty) return null;
-
-        var result = _employeeContext.Employees.Update(employee).Entity;
-        await _employeeContext.SaveChangesAsync();
-
-        return result;
+        _employeeContext.Employees.Update(employee);
     }
 
-    public async Task<Employee> GetById(Guid id)
+    public async Task<Employee> GetByIdAsync(Guid id)
     {
         var result = await _employeeContext.Employees
             .SingleOrDefaultAsync(e => e.EmployeeId == id);
@@ -51,5 +47,20 @@ public class EmployeeRepository : IEmployeeRepository
     public async Task SetEmployeeDirectReportCollection(Employee employee)
     {
          await _employeeContext.Entry(employee).Collection(e => e.DirectReports).LoadAsync();
+    }
+
+    public Task<IEnumerable<Employee>> GetAllAsync()
+    {
+        throw new NotImplementedException();
+    }
+    
+    public void Delete(Employee entity)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task SaveChangesAsync()
+    {
+        return _employeeContext.SaveChangesAsync();
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CodeChallenge.Data;
 using CodeChallenge.Models;
+using CodeChallenge.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -41,9 +43,23 @@ public class CompensationRepository : ICompensationRepository
         }
 
         await _compensationContext.Compensations.AddAsync(compensation);
-        await _compensationContext.SaveChangesAsync();
 
         return compensation;
+    }
+
+    public void Delete(Compensation entity)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IEnumerable<Compensation>> GetAllAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Compensation> GetByIdAsync(Guid id)
+    {
+        throw new NotImplementedException();
     }
 
     public async Task<Compensation> GetCompensationByEmployeeId(Guid employeeId)
@@ -54,5 +70,15 @@ public class CompensationRepository : ICompensationRepository
             .SingleOrDefaultAsync(x => x.EmployeeId == employeeId);
 
         return result;
+    }
+
+    public Task SaveChangesAsync()
+    {
+        return _compensationContext.SaveChangesAsync();
+    }
+
+    public void Update(Compensation entity)
+    {
+        throw new NotImplementedException();
     }
 }

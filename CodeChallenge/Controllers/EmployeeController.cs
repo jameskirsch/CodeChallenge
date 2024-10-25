@@ -29,7 +29,7 @@ public class EmployeeController : ControllerBase
     {
         _logger.LogDebug("Received employee create request for '{FirstName} {LastName}'", employee.FirstName,
             employee.LastName);
-        await _employeeService.Create(employee);
+        await _employeeService.AddAsync(employee);
 
         return CreatedAtRoute("getEmployeeById", new { id = employee.EmployeeId }, employee);
     }
@@ -50,18 +50,15 @@ public class EmployeeController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody]Employee updateModel)
+    public async Task<IActionResult> Update(Guid id, [FromBody] Employee employee)
     {
         _logger.LogDebug("Received employee update request for '{id}'", id);
-
-        var existingEmployee = await _employeeService.GetById(id);
-        if (existingEmployee == null)
+        var result = await _employeeService.Update(employee);
+        if (result == null)
         {
             return NotFound();
         }
 
-        var updatedEmployee = await _employeeService.Update(existingEmployee, updateModel);
-
-        return Ok(updatedEmployee);
+        return Ok(result);
     }
 }

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CodeChallenge.Data;
 
-public class EmployeeContext : DbContext
+public class EmployeeContext : DataContext<EmployeeContext>
 {
     public EmployeeContext(DbContextOptions<EmployeeContext> options) : base(options) { }
 
@@ -11,6 +11,8 @@ public class EmployeeContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<Employee>()
             .HasKey(e => e.EmployeeId);
 

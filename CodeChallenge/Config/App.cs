@@ -2,7 +2,9 @@
 using System.Threading.Tasks;
 using CodeChallenge.Config.MapperProfiles;
 using CodeChallenge.Data;
+using CodeChallenge.Models;
 using CodeChallenge.Repositories;
+using CodeChallenge.Repositories.Interfaces;
 using CodeChallenge.Services;
 
 using Microsoft.AspNetCore.Builder;
@@ -69,10 +71,14 @@ public class App
             });
         }
 
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
         services.AddScoped<IEmployeeService, EmployeeService>();
-        services.AddScoped<IEmployeeRepository, EmployeeRepository>();
         services.AddScoped<IReportingStructureService, ReportingStructureService>();
         services.AddScoped<ICompensationService, CompensationService>();
+
+        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddScoped<IEmployeeRepository, EmployeeRepository>();
         services.AddScoped<ICompensationRepository, CompensationRepository>();
 
         services.AddControllers();

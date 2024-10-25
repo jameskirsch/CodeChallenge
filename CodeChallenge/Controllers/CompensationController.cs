@@ -68,7 +68,7 @@ public class CompensationController : ControllerBase
     /// If an error occurs during creation, returns a 500 Internal Server Error response with a corresponding error message.
     /// </returns>
     [HttpPost]
-    public async Task<IActionResult> CreateCompensation([FromBody] Compensation compensation)
+    public async Task<IActionResult> AddAsync([FromBody] Compensation compensation)
     {
         try
         {
@@ -78,7 +78,7 @@ public class CompensationController : ControllerBase
                 return BadRequest(new { message = "Invalid data. EmployeeId is required." });
             }
 
-            var createdCompensationResult = await _compensationService.Create(compensation);
+            var createdCompensationResult = await _compensationService.AddAsync(compensation);
             if (createdCompensationResult == null)
             {
                 _logger.LogWarning("Failed to create compensation record for EmployeeId '{EmployeeId}'", compensation.EmployeeId);

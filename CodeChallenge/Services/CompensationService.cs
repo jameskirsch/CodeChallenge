@@ -1,8 +1,8 @@
 ﻿using CodeChallenge.Models;
 using System;
 using System.Threading.Tasks;
-using CodeChallenge.Repositories;
 using Microsoft.Extensions.Logging;
+using CodeChallenge.Repositories.Interfaces;
 
 namespace CodeChallenge.Services;
 
@@ -12,7 +12,9 @@ public class CompensationService : ICompensationService
     private readonly IEmployeeRepository _employeeRepository;
     private readonly ILogger<CompensationService> _logger;
 
-    public CompensationService(ILogger<CompensationService> logger, ICompensationRepository compensationRepository, IEmployeeRepository employeeRepository)
+    public CompensationService(ILogger<CompensationService> logger, 
+        ICompensationRepository compensationRepository, 
+        IEmployeeRepository employeeRepository)
     {
         _compensationRepository =
             compensationRepository ?? throw new ArgumentNullException(nameof(compensationRepository));
@@ -31,7 +33,7 @@ public class CompensationService : ICompensationService
     /// <exception cref="ArgumentNullException">Thrown when the compensation object is null.</exception>
     /// <exception cref="ArgumentException">Thrown when the EmployeeId is missing or null.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the associated Employee does not exist.</exception>
-    public async Task<Compensation> Create(Compensation compensation)
+    public async Task<Compensation> AddAsync(Compensation compensation, bool? deferCommitToUoW = false)
     {
         // Ensure compensation exists
         if (compensation == null)
@@ -46,7 +48,7 @@ public class CompensationService : ICompensationService
             throw new ArgumentException("EmployeeId must be a valid GUID in Compensation Object.", nameof(compensation));
         }
 
-        var existingEmployee = await _employeeRepository.GetById(compensation.EmployeeId);
+        var existingEmployee = await _employeeRepository.GetByIdAsync(compensation.EmployeeId);
         if (existingEmployee == null)
         {
             _logger.LogError("No Employee Record found to associate new Compensation Record with");
@@ -56,10 +58,25 @@ public class CompensationService : ICompensationService
         // If the employee exists, attach it to the compensation record.
         compensation.EmployeeId = existingEmployee.EmployeeId;
 
-
         // Add the new Compensation Record with the Employee attached, and Save
+        if (deferCommitToUoW == null) return compensation;
+
         await _compensationRepository.AddAsync(compensation);
 
+        if (!(deferCommitToUoW ?? true))
+        {
+            await _compensationRepository.SaveChangesAsync();
+        }
+
+        // Manually update the employee record to link the compensation
+        existingEmployee.CompensationId = compensation.CompensationId;  // Assuming Employee has a CompensationId field
+        _employeeRepository.Update(existingEmployee);
+
+        if (!(deferCommitToUoW ?? true))
+        {
+            await _employeeRepository.SaveChangesAsync();
+        }
+        
         return compensation;
     }
 

@@ -10,8 +10,6 @@ namespace CodeChallenge.Config;
 
 public static class WebApplicationBuilderExt
 {
-    private const string DbName = "EmployeeDB";
-
     public static void UseEmployeeDb(this WebApplicationBuilder builder)
     {
         var env = builder.Environment;
@@ -19,21 +17,21 @@ public static class WebApplicationBuilderExt
         if (env.IsDevelopment())
         {
             builder.Services.AddDbContext<EmployeeContext>(options =>
-                options.UseInMemoryDatabase(DbName)
+                options.UseInMemoryDatabase("EmployeeDatabase")
                     .UseLazyLoadingProxies());
 
             builder.Services.AddDbContext<CompensationContext>(options =>
-                options.UseInMemoryDatabase(DbName)
+                options.UseInMemoryDatabase("CompensationDatabase")
                     .UseLazyLoadingProxies());
         }
         else
         {
             builder.Services.AddDbContext<EmployeeContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+                options.UseSqlServer(builder.Configuration.GetConnectionString("EmployeeDatabase"))
                     .UseLazyLoadingProxies());
 
             builder.Services.AddDbContext<CompensationContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+                options.UseSqlServer(builder.Configuration.GetConnectionString("CompensationDatabase"))
                     .UseLazyLoadingProxies());
         }
     }

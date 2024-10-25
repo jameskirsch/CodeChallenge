@@ -7,5 +7,5 @@ namespace CodeChallenge.Services;
 public interface ICompensationService
 {
     Task<Compensation> GetCompensationByEmployeeId(Guid id);
-    Task<Compensation> Create(Compensation compensation);
+    Task<Compensation> AddAsync(Compensation compensation, bool? deferCommitToUoW = false);
 }

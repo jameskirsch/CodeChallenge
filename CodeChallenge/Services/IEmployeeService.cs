@@ -7,7 +7,7 @@ namespace CodeChallenge.Services;
 public interface IEmployeeService
 {
     Task<Employee> GetById(Guid id);
-    Task<Employee> Create(Employee employee);
-    Task<Employee> Update(Employee existingModel, Employee updateModel);
+    Task<Employee> Update(Employee UpdatedEmployee, bool? deferCommitToUoW = false);
     Task SetEmployeeDirectReports(Employee employee);
+    Task<Employee> AddAsync(Employee employee, bool? deferCommitToUoW = false);
 }

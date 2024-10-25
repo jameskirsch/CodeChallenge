@@ -2,10 +2,9 @@
 using System;
 using System.Threading.Tasks;
 
-namespace CodeChallenge.Repositories;
+namespace CodeChallenge.Repositories.Interfaces;
 
-public interface ICompensationRepository
+public interface ICompensationRepository : IRepository<Compensation>
 {
-    Task<Compensation> AddAsync(Compensation compensation);
     Task<Compensation> GetCompensationByEmployeeId(Guid employeeId);
 }

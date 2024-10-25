@@ -11,6 +11,8 @@ using Moq;
 using CodeChallenge.Data;
 using CodeChallenge.Tests.Integration.Helpers;
 using Microsoft.EntityFrameworkCore;
+using CodeChallenge.Repositories.Interfaces;
+using CodeChallenge.Services.Orchestrators;
 
 namespace CodeChallenge.Tests.Integration;
 
@@ -43,24 +45,6 @@ public class EmployeeServiceTests
         var mockCompensationRepository = new Mock<ICompensationRepository>();
         var mapper = new Mock<IMapper>();
 
-        Compensation addedCompensation = null;
-        Employee addedEmployee = null;
-
-        // spy on Add method 
-        mockCompensationRepository.Setup(x => x.AddAsync(It.IsAny<Compensation>()))
-            .Callback<Compensation>(compensation => addedCompensation = compensation)
-            .ReturnsAsync((Compensation comp) => comp);
-
-        mockEmployeeRepository.Setup(x => x.AddAsync(It.IsAny<Employee>()))
-            .Callback<Employee>(emp => addedEmployee = emp)
-            .ReturnsAsync((Employee emp) => emp);
-
-        mockEmployeeRepository.Setup(x => x.GetById(It.IsAny<Guid>()))
-            .ReturnsAsync((Guid _) => addedEmployee);
-        mockCompensationRepository.Setup(x => x.GetCompensationByEmployeeId(It.IsAny<Guid>()))
-            .ReturnsAsync((Guid _) => addedCompensation);  // Return the compensation by employeeId
-
-        // Create test employee and compensation
         var employeeId = Guid.NewGuid();
         var employee = new Employee
         {
@@ -78,16 +62,21 @@ public class EmployeeServiceTests
             EmployeeId = employeeId
         };
 
+        mockEmployeeRepository.Setup(x => x.AddAsync(It.IsAny<Employee>())).ReturnsAsync(employee);
+        mockCompensationRepository.Setup(x => x.AddAsync(It.IsAny<Compensation>())).ReturnsAsync(compensation);
+        mockEmployeeRepository.Setup(x => x.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync(employee);
+        mockCompensationRepository.Setup(x => x.GetCompensationByEmployeeId(It.IsAny<Guid>())).ReturnsAsync(compensation);  
+        
         // Initialize the service with the mock repository
         var compensationService = new CompensationService(new NullLogger<CompensationService>(), mockCompensationRepository.Object, mockEmployeeRepository.Object);
         var employeeService = new EmployeeService(new NullLogger<EmployeeService>(), mockEmployeeRepository.Object, mapper.Object);
 
         // Create employee record (employee record is required)
-        var createdEmployee = employeeService.Create(employee);
+        var createdEmployee = await employeeService.AddAsync(employee);
         Assert.IsNotNull(createdEmployee);
 
         // Create the compensation record
-        var createdCompensation = await compensationService.Create(compensation);
+        var createdCompensation = await compensationService.AddAsync(compensation);
 
         // Ensure the compensation is created
         Assert.IsNotNull(createdCompensation);
@@ -100,7 +89,7 @@ public class EmployeeServiceTests
     }
 
     [TestMethod]
-    public async Task Ensure_Compensation_Created_And_Persisted_InDatabase()
+    public async Task Ensure_Compensation_Created_And_Persisted_InDatabase_Individually()
     {
         // Arrange
         var employee = new Employee
@@ -131,8 +120,8 @@ public class EmployeeServiceTests
         var compensationService = new CompensationService(new NullLogger<CompensationService>(), compensationRepository, employeeRepository);
 
         // Act
-        await employeeService.Create(employee); // Save the employee to the in-memory DB
-        await compensationService.Create(compensation); // Save the compensation
+        await employeeService.AddAsync(employee); // Save the employee to the in-memory DB
+        await compensationService.AddAsync(compensation); // Save the compensation
 
         // Assert
         var actualPersistedCompensation = await compensationContext.Compensations
