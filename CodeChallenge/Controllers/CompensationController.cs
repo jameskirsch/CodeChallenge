@@ -86,7 +86,7 @@ public class CompensationController : ControllerBase
             }
 
             _logger.LogInformation("Successfully created compensation record for EmployeeId '{EmployeeId}'", compensation.EmployeeId);
-            return CreatedAtRoute("getCompensationByEmployeeById", new { id = compensation.CompensationId}, compensation);
+            return CreatedAtRoute("getCompensationByEmployeeById", new { id = compensation.EmployeeId }, compensation);
         }
         catch (Exception ex)
         {
